@@ -54,7 +54,7 @@ const Dashboard = () => {
           controls
           className="w-full h-full lg:h-full object-cover relative overflow-x-hidden"
         >
-          <source src="/videos/Qur'an vid.mp4" type="video/mp4" />
+          <source src="/src/asset/videos/Qur'an vid.mp4" type="video/mp4" />
         </video>
 
         <div className="bg-black/55 text-AppWhite  absolute top-0 h-[80vh] w-full flex flex-col  px-11">

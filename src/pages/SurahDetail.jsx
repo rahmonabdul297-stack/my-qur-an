@@ -9,14 +9,14 @@ import { BsPlayFill, BsPauseFill } from "react-icons/bs";
 
 const RECITER = "ar.alafasy";
 const AUDIO_BASE = "https://cdn.islamic.network/quran/audio/128";
+const EDITIONS_URL = (num) =>
+  `https://api.alquran.cloud/v1/surah/${num}/editions/quran-uthmani,en.sahih`;
 
 const SurahDetail = () => {
   const { number } = useParams();
   const [searchParams] = useSearchParams();
   const ayahParam = searchParams.get("ayah");
-  const { data, error, loading } = useFetch(
-    `https://api.alquran.cloud/v1/surah/${number}/${RECITER}`,
-  );
+  const { data, error, loading } = useFetch(EDITIONS_URL(number));
   const audioRef = useRef(null);
   const [playingIndex, setPlayingIndex] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -25,8 +25,21 @@ const SurahDetail = () => {
     startIndex: 0,
   });
 
-  const surah = data?.data;
-  const ayahs = useMemo(() => surah?.ayahs ?? [], [surah]);
+  const surah = data?.data?.[0];
+  const ayahs = useMemo(() => {
+    const editions = data?.data ?? [];
+    const arabic = editions.find((e) => e.edition?.identifier === "quran-uthmani");
+    const english = editions.find((e) => e.edition?.identifier === "en.sahih");
+    if (!arabic?.ayahs) return [];
+    const enByNum = Object.fromEntries(
+      (english?.ayahs ?? []).map((a) => [a.numberInSurah, a.text])
+    );
+    return arabic.ayahs.map((a) => ({
+      ...a,
+      audio: a.audio ?? `${AUDIO_BASE}/${RECITER}/${a.number}.mp3`,
+      translation: enByNum[a.numberInSurah] ?? "",
+    }));
+  }, [data?.data]);
 
   const ayahRefs = useRef([]);
 

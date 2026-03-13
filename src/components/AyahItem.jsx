@@ -71,6 +71,11 @@ const AyahItem = ({
         <p className="text-2xl leading-loose" dir="rtl">
           {ayah.text}
         </p>
+        {ayah.translation && (
+          <p className="text-base opacity-90 mt-2" dir="ltr">
+            {ayah.translation}
+          </p>
+        )}
         {ayah.page != null && (
           <p className="text-xs opacity-60 mt-1">Page {ayah.page}</p>
         )}
