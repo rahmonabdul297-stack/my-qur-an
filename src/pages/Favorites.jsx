@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { useFavorites } from "../context/FavoritesContext";
+import { useFavorites } from "../context/favoritesContext";
 
 const Favorites = () => {
   const { favorites } = useFavorites();

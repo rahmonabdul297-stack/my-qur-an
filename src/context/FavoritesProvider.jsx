@@ -1,23 +1,7 @@
-import { createContext, useState, useContext, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { FavoritesContext, loadFavorites, saveFavorites } from "./favoritesContext";
 
-const FAVORITES_KEY = "quran-favorites";
-
-const FavoritesContext = createContext();
-
-const loadFavorites = () => {
-  try {
-    const stored = localStorage.getItem(FAVORITES_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveFavorites = (favorites) => {
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-};
-
-export const FavoritesProvider = ({ children }) => {
+const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState(loadFavorites);
 
   const isFavorite = useCallback((surahNumber, ayahNumber) => {
@@ -54,8 +38,4 @@ export const FavoritesProvider = ({ children }) => {
   );
 };
 
-export const useFavorites = () => {
-  const ctx = useContext(FavoritesContext);
-  if (!ctx) throw new Error("useFavorites must be used within FavoritesProvider");
-  return ctx;
-};
+export default FavoritesProvider;

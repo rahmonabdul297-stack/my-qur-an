@@ -1,5 +1,5 @@
 import { useParams, Link, useSearchParams } from "react-router";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import useFetch from "../hooks/usefetch";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
@@ -26,7 +26,7 @@ const SurahDetail = () => {
   });
 
   const surah = data?.data;
-  const ayahs = surah?.ayahs ?? [];
+  const ayahs = useMemo(() => surah?.ayahs ?? [], [surah]);
 
   const ayahRefs = useRef([]);
 

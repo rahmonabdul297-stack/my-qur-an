@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { ThemeContext } from "../context/ThemeContext";
+import { ThemeContext } from "../context/themeContext";
 import { CiLight, CiSettings } from "react-icons/ci";
 import { GoTriangleDown, GoTriangleRight } from "react-icons/go";
 import { HiOutlineBars3 } from "react-icons/hi2";

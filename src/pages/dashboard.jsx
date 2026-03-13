@@ -9,7 +9,7 @@ import { filterArrays } from "../components/arrays";
 import { useState, useMemo } from "react";
 import { GoTriangleDown, GoTriangleUp } from "react-icons/go";
 import JuzPage from "./juz";
-import { useFavorites } from "../context/FavoritesContext";
+import { useFavorites } from "../context/favoritesContext";
 import GeneralFooter from "../components/GeneralFooter";
 
 const Dashboard = () => {

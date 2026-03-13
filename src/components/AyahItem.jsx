@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useContext } from "react";
-import { useFavorites } from "../context/FavoritesContext";
+import { useFavorites } from "../context/favoritesContext";
 import { successNotification } from "../utils/helpers";
-import { ThemeContext } from "../context/ThemeContext";
+import { ThemeContext } from "../context/themeContext";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 
 const AyahItem = ({
@@ -11,7 +11,6 @@ const AyahItem = ({
   isPlaying,
   onPlayFromAyah,
   onOpenVideoTemplate,
-  children,
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);

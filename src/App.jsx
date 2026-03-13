@@ -11,7 +11,7 @@ import JuzDetail from "./pages/JuzDetail";
 import Favorites from "./pages/Favorites";
 import { ToastContainer } from "react-toastify";
 import { useContext } from "react";
-import { ThemeContext } from "./context/ThemeContext";
+import { ThemeContext } from "./context/themeContext";
 function App() {
   const {theme}=useContext(ThemeContext)
   return (

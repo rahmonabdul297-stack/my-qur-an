@@ -1,16 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
-import AppThemeContext from './context/ThemeContext'
-import { FavoritesProvider } from './context/FavoritesContext'
+import ThemeProvider from './context/ThemeProvider'
+import FavoritesProvider from './context/FavoritesProvider'
 
 
 createRoot(document.getElementById('root')).render(
-  <AppThemeContext>
+  <ThemeProvider>
     <FavoritesProvider>
       <StrictMode>
         <App />
       </StrictMode>
     </FavoritesProvider>
-  </AppThemeContext>,
+  </ThemeProvider>,
 )
