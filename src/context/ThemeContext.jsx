@@ -9,9 +9,9 @@ const AppThemeContext = ({ children }) => {
   const currentHourArr = currentTime.split(":");
   const currentHour = currentHourArr[0];
 
-  if (currentHour >=19) {
-    setTheme(true)
-  } 
+  // if (currentHour >=19) {
+  //   setTheme(true)
+  // } 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
