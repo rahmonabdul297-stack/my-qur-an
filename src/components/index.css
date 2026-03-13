@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme{
+  --color-AppBlack: #444;
+   --color-AppGreen: #62a03f;
+    --color-AppWhite: #ddd;
+     --color-AppGray: #333;
+}
+.ubuntu-sans-mono-font {
+  font-family: "Ubuntu Sans Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-variation-settings: "width" 100;
+}
+
+.playpen-sans-arabic {
+  font-family: "Playpen Sans Arabic", cursive;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+h4{@apply uppercase}
+.ornament {
+  width: 200px;
+  height: 200px;
+  position: relative;
+  border: 12px solid #000;
+  border-radius: 50%;
+  background: #d8d85a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* inner circle */
+.inner {
+  width: 150px;
+  height: 150px;
+  color: #000;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+}
+
+/* top decoration */
+.ornament::before {
+  content: "";
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 70px;
+  background: #d8d85a;
+  border: 8px solid #000;
+  border-bottom: none;
+  border-radius: 70px 70px 0 0;
+}
+
+/* bottom decoration */
+.ornament::after {
+  content: "";
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 70px;
+  background: #d8d85a;
+  border: 8px solid #000;
+  border-top: none;
+  border-radius: 0 0 70px 70px;
+}
+
+/* Mobile menu animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mobile-nav-item {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+/* Surah number hexagon for Juz layout */
+.surah-number-hex {
+  background:var(--color-AppGreen);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  color: var(--color-AppWhite);
+  min-width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
