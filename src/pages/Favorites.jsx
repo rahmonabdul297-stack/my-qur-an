@@ -25,7 +25,7 @@ const Favorites = () => {
           {favorites.map((fav) => (
             <Link
               key={`${fav.surahNumber}-${fav.ayahNumber}`}
-              to={`/surah/${fav.surahNumber}`}
+              to={`/surah/${fav.surahNumber}?ayah=${fav.ayahNumber}`}
               className="flex gap-4 p-4 rounded-xl border border-transparent hover:border-AppGreen bg-AppGray/10 transition-colors"
             >
               <span className="surah-number-hex shrink-0 text-sm">

@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect } from "react";
 import { HiXMark } from "react-icons/hi2";
 import { BsPlayFill, BsPauseFill } from "react-icons/bs";
-
-const AUDIO_BASE = "https://cdn.islamic.network/quran/audio/128/ar.alafasy";
+import { getCachedAudioUrl } from "../utils/audioCache";
+import { toArabicNumbers } from "../utils/helpers";
+import { getAudioUrl, DEFAULT_RECITER } from "../utils/reciters";
 
 const VIDEO_OPTIONS = [
   { id: "1", src: "/videos/nature video 1.mp4", label: "template 1" },
@@ -14,53 +15,100 @@ const QuranicVideoTemplate = ({
   ayahs,
   startIndex = 0,
   surahName,
+  showTranslation = true,
+  reciter = DEFAULT_RECITER,
   onClose,
 }) => {
   const videoRef = useRef(null);
   const audioRef = useRef(null);
+  const blobUrlRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedVideoSrc, setSelectedVideoSrc] = useState(VIDEO_OPTIONS[0].src);
 
   const ayah = ayahs[currentIndex];
-  const audioUrl = ayah?.audio ?? (ayah ? `${AUDIO_BASE}/${ayah.number}.mp3` : null);
+  const audioUrl = ayah?.audio ?? (ayah ? getAudioUrl(reciter, ayah.number) : null);
+  const currentIndexRef = useRef(currentIndex);
+  const ayahsRef = useRef(ayahs);
+  const reciterRef = useRef(reciter);
+  const isAutoAdvancingRef = useRef(false);
+  currentIndexRef.current = currentIndex;
+  ayahsRef.current = ayahs;
+  reciterRef.current = reciter;
+
+  const tryPlayAyahAtIndexRef = useRef(null);
+  const tryPlayAyahAtIndex = async (index) => {
+    const audio = audioRef.current;
+    const list = ayahsRef.current;
+    if (!audio || !list?.length || index >= list.length) {
+      setIsPlaying(false);
+      setCurrentIndex(0);
+      return;
+    }
+    isAutoAdvancingRef.current = true;
+    currentIndexRef.current = index;
+    setCurrentIndex(index);
+    const r = reciterRef.current;
+    const url = list[index]?.audio ?? getAudioUrl(r, list[index]?.number);
+    try {
+      const blobUrl = await getCachedAudioUrl(url);
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = blobUrl;
+      audio.src = blobUrl;
+      await audio.play();
+    } catch {
+      try {
+        audio.src = url;
+        await audio.play();
+      } catch {
+        tryPlayAyahAtIndexRef.current?.(index + 1);
+      }
+    } finally {
+      isAutoAdvancingRef.current = false;
+    }
+  };
+  tryPlayAyahAtIndexRef.current = tryPlayAyahAtIndex;
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !audioUrl) return;
+    if (!audio || !ayahs?.length) return;
 
     const handleEnded = () => {
-      const next = currentIndex + 1;
-      if (next < ayahs.length) {
-        setCurrentIndex(next);
+      const list = ayahsRef.current;
+      if (!list?.length) return;
+      const current = currentIndexRef.current;
+      const next = current + 1;
+      if (next < list.length) {
+        tryPlayAyahAtIndexRef.current?.(next);
       } else {
         setIsPlaying(false);
         setCurrentIndex(0);
       }
     };
 
+    const handleError = () => {
+      const current = currentIndexRef.current;
+      tryPlayAyahAtIndexRef.current?.(current + 1);
+    };
+
     audio.addEventListener("ended", handleEnded);
-    return () => audio.removeEventListener("ended", handleEnded);
-  }, [currentIndex, ayahs.length, audioUrl]);
+    audio.addEventListener("error", handleError);
+    return () => {
+      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("error", handleError);
+    };
+  }, [ayahs?.length]);
 
   useEffect(() => {
-    if (!isPlaying || !audioUrl) return;
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const url = ayahs[currentIndex]?.audio ?? `${AUDIO_BASE}/${ayahs[currentIndex]?.number}.mp3`;
-    audio.src = url;
-    audio.play();
-  }, [currentIndex, isPlaying, ayahs, audioUrl]);
+    if (!isPlaying || !ayahs?.length || isAutoAdvancingRef.current) return;
+    tryPlayAyahAtIndexRef.current?.(currentIndex);
+  }, [currentIndex, isPlaying, ayahs?.length]);
 
   const togglePlay = () => {
     if (isPlaying) {
       audioRef.current?.pause();
       setIsPlaying(false);
     } else {
-      const url = ayahs[currentIndex]?.audio ?? `${AUDIO_BASE}/${ayahs[currentIndex]?.number}.mp3`;
-      audioRef.current.src = url;
-      audioRef.current.play();
       setIsPlaying(true);
     }
   };
@@ -76,6 +124,12 @@ const QuranicVideoTemplate = ({
       setCurrentIndex(currentIndex + 1);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
+  }, []);
 
   if (!ayahs?.length) return null;
 
@@ -122,13 +176,13 @@ const QuranicVideoTemplate = ({
               <p className="text-3xl lg:text-4xl leading-loose text-white font-medium">
                 {ayah?.text}
               </p>
-              {ayah?.translation && (
+              {showTranslation && ayah?.translation && (
                 <p className="text-white/85 mt-3 text-base lg:text-lg max-w-2xl mx-auto" dir="ltr">
                   {ayah.translation}
                 </p>
               )}
               <p className="text-white/70 mt-3 text-sm">
-                Verse {ayah?.numberInSurah ?? ayah?.number} • Page {ayah?.page ?? "—"}
+                Verse {toArabicNumbers(ayah?.numberInSurah ?? ayah?.number)} • Page {ayah?.page ?? "—"}
               </p>
             </div>
 

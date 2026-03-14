@@ -6,8 +6,10 @@ import { Apploader } from "../components/Apploader";
 import AyahItem from "../components/AyahItem";
 import QuranicVideoTemplate from "../components/QuranicVideoTemplate";
 import { BsPlayFill, BsPauseFill } from "react-icons/bs";
-
-const AUDIO_BASE = "https://cdn.islamic.network/quran/audio/128/ar.alafasy";
+import { getCachedAudioUrl } from "../utils/audioCache";
+import { toArabicNumbers } from "../utils/helpers";
+import { getAudioUrl, DEFAULT_RECITER, RECITERS } from "../utils/reciters";
+import { useRecent } from "../context/recentContext";
 
 const JuzDetail = () => {
   const { number } = useParams();
@@ -22,6 +24,12 @@ const JuzDetail = () => {
     open: false,
     startIndex: 0,
   });
+  const blobUrlRef = useRef(null);
+  const playingIndexRef = useRef(null);
+  const juzAyahsRef = useRef([]);
+  const reciterRef = useRef(DEFAULT_RECITER);
+  const [reciter, setReciter] = useState(DEFAULT_RECITER);
+  const { addRecent } = useRecent();
 
   const juzNum = parseInt(number, 10);
   const juzAyahs = (
@@ -30,11 +38,22 @@ const JuzDetail = () => {
         .filter((ayah) => ayah.juz === juzNum)
         .map((ayah) => ({
           ...ayah,
+          audio: ayah.audio ?? getAudioUrl(reciter, ayah.number),
           surahName: surah.englishName,
           surahNumber: surah.number,
         })),
     ) ?? []
   ).sort((a, b) => a.number - b.number);
+
+  playingIndexRef.current = playingIndex;
+  juzAyahsRef.current = juzAyahs;
+  reciterRef.current = reciter;
+
+  useEffect(() => {
+    audioRef.current?.pause();
+    setPlayingIndex(null);
+    setIsPlaying(false);
+  }, [reciter]);
 
   useEffect(() => {
     if (playingIndex != null && ayahRefs.current[playingIndex]) {
@@ -45,35 +64,76 @@ const JuzDetail = () => {
     }
   }, [playingIndex]);
 
+  const tryPlayAyahAtIndexRef = useRef(null);
+  const tryPlayAyahAtIndex = async (index) => {
+    const audio = audioRef.current;
+    const list = juzAyahsRef.current;
+    if (!audio || !list?.length || index >= list.length) {
+      playingIndexRef.current = null;
+      setPlayingIndex(null);
+      setIsPlaying(false);
+      return;
+    }
+    playingIndexRef.current = index;
+    setPlayingIndex(index);
+    const r = reciterRef.current;
+    const url = list[index].audio ?? getAudioUrl(r, list[index].number);
+    try {
+      const blobUrl = await getCachedAudioUrl(url);
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = blobUrl;
+      audio.src = blobUrl;
+      await audio.play();
+      const ayah = list[index];
+      addRecent(ayah.surahNumber, ayah.numberInSurah ?? ayah.number, ayah.surahName, ayah.text);
+    } catch {
+      try {
+        audio.src = url;
+        await audio.play();
+        const ayah = list[index];
+        addRecent(ayah.surahNumber, ayah.numberInSurah ?? ayah.number, ayah.surahName, ayah.text);
+      } catch {
+        tryPlayAyahAtIndexRef.current?.(index + 1);
+      }
+    }
+  };
+  tryPlayAyahAtIndexRef.current = tryPlayAyahAtIndex;
+
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !data) return;
 
     const handleEnded = () => {
-      const next = (playingIndex ?? -1) + 1;
-      if (next < juzAyahs.length) {
-        setPlayingIndex(next);
-        audio.src = `${AUDIO_BASE}/${juzAyahs[next].number}.mp3`;
-        audio.play();
+      const list = juzAyahsRef.current;
+      if (!list?.length) return;
+      const current = playingIndexRef.current ?? -1;
+      const next = current + 1;
+      if (next < list.length) {
+        tryPlayAyahAtIndexRef.current?.(next);
       } else {
+        playingIndexRef.current = null;
         setPlayingIndex(null);
         setIsPlaying(false);
       }
     };
 
+    const handleError = () => {
+      const current = playingIndexRef.current ?? -1;
+      tryPlayAyahAtIndexRef.current?.(current + 1);
+    };
+
     audio.addEventListener("ended", handleEnded);
-    return () => audio.removeEventListener("ended", handleEnded);
-  }, [playingIndex, juzAyahs]);
+    audio.addEventListener("error", handleError);
+    return () => {
+      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("error", handleError);
+    };
+  }, [data]);
 
-  const playFromIndex = (index) => {
+  const playFromIndex = async (index) => {
     if (index >= juzAyahs.length) return;
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.src = `${AUDIO_BASE}/${juzAyahs[index].number}.mp3`;
-    setPlayingIndex(index);
+    tryPlayAyahAtIndexRef.current?.(index);
     setIsPlaying(true);
-    audio.play();
   };
 
   const togglePlayPause = () => {
@@ -97,6 +157,12 @@ const JuzDetail = () => {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
+  }, []);
+
   if (loading) return <Apploader size={20} />;
   if (error) return <AppError error={error} />;
 
@@ -114,26 +180,40 @@ const JuzDetail = () => {
           <div>
             <h1 className="text-2xl font-bold">Juz {number}</h1>
             <p className="text-sm opacity-80 mt-1">
-              {juzAyahs.length} Ayahs
+              {toArabicNumbers(juzAyahs.length)} Ayahs
             </p>
           </div>
-          <button
-            type="button"
-            onClick={togglePlayPause}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-AppGreen text-white hover:opacity-90 transition-opacity"
-          >
-            {isPlaying ? (
-              <>
-                <BsPauseFill size={20} />
-                Pause
-              </>
-            ) : (
-              <>
-                <BsPlayFill size={20} />
-                Listen
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-4">
+            <select
+              value={reciter}
+              onChange={(e) => setReciter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-AppGreen/50 bg-transparent text-sm min-w-[140px] focus:outline-none focus:ring-2 focus:ring-AppGreen/50"
+              title="Select reciter"
+            >
+              {RECITERS.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={togglePlayPause}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-AppGreen text-white hover:opacity-90 transition-opacity"
+            >
+              {isPlaying ? (
+                <>
+                  <BsPauseFill size={20} />
+                  Pause
+                </>
+              ) : (
+                <>
+                  <BsPlayFill size={20} />
+                  Listen
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
       <div className="flex flex-col gap-4">
@@ -159,6 +239,7 @@ const JuzDetail = () => {
           ayahs={juzAyahs}
           startIndex={videoTemplateState.startIndex}
           surahName={`Juz ${number}`}
+          reciter={reciter}
           onClose={() => setVideoTemplateState({ open: false, startIndex: 0 })}
         />
       )}

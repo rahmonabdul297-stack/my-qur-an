@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useContext } from "react";
 import { useFavorites } from "../context/favoritesContext";
-import { successNotification } from "../utils/helpers";
+import { successNotification, toArabicNumbers } from "../utils/helpers";
 import { ThemeContext } from "../context/themeContext";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 
@@ -9,6 +9,7 @@ const AyahItem = ({
   surahNumber,
   surahName,
   isPlaying,
+  showTranslation = true,
   onPlayFromAyah,
   onOpenVideoTemplate,
 }) => {
@@ -62,7 +63,7 @@ const AyahItem = ({
       }`}
     >
       <span className="surah-number-hex shrink-0 text-sm">
-        {ayah.numberInSurah ?? ayah.number}
+        {toArabicNumbers(ayah.numberInSurah ?? ayah.number)}
       </span>
       <div className="flex-1">
         {surahName && (
@@ -71,7 +72,7 @@ const AyahItem = ({
         <p className="text-2xl leading-loose" dir="rtl">
           {ayah.text}
         </p>
-        {ayah.translation && (
+        {showTranslation && ayah.translation && (
           <p className="text-base opacity-90 mt-2" dir="ltr">
             {ayah.translation}
           </p>

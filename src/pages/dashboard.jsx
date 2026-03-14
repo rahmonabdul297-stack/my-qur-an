@@ -10,14 +10,15 @@ import { useState, useMemo } from "react";
 import { GoTriangleDown, GoTriangleUp } from "react-icons/go";
 import JuzPage from "./juz";
 import { useFavorites } from "../context/favoritesContext";
+import { useRecent } from "../context/recentContext";
 import GeneralFooter from "../components/GeneralFooter";
-
 const Dashboard = () => {
   const [Url] = useState(
     "https://api.alquran.cloud/v1/quran/quran-uthmani",
   );
   const { data, error, loading } = useFetch(Url);
   const { favorites } = useFavorites();
+  const { recent } = useRecent();
   const [select, setSelected] = useState(1);
   const [showall, setshowall] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,6 +99,41 @@ const Dashboard = () => {
       </section>
 
       <section className="p-7">
+        <div className="grid gap-6 lg:grid-cols-2 mb-10">
+          <div>
+            <h2 className="text-lg font-bold mb-3">Recently listened / read</h2>
+            {recent.length === 0 ? (
+              <p className="text-sm opacity-70 py-4">
+                Play or read ayahs to see them here.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {recent.slice(0, 8).map((item) => (
+                  <Link
+                    key={`${item.surahNumber}-${item.ayahNumber}`}
+                    to={`/surah/${item.surahNumber}?ayah=${item.ayahNumber}`}
+                    className="w-[200px] lg:w-[240px] border hover:border-AppGreen px-3 py-3 flex items-center justify-between rounded-2xl transition-colors"
+                  >
+                    <div className="bg-AppGreen h-10 w-10 text-center  -rotate-45">
+                      <div className="rotate-45 text-white bg-AppGreen h-10 w-10 text-center  font-bold text-sm p-2">
+                        {item.ayahNumber}
+                      </div>
+                    </div>
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <div className="text-[12px] font-bold truncate">
+                        {item.surahName}
+                      </div>
+                      <div className="text-xs opacity-80 truncate" dir="rtl">
+                        {item.ayahText}...
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+          
+        </div>
         <div className="flex items-center uppercase font-black gap-3">
           {filterArrays.map((filter) => (
             <div
@@ -126,8 +162,8 @@ const Dashboard = () => {
                     to={`/surah/${surah.number}`}
                     className="w-[180px] lg:w-[250px] border hover:border-AppGreen px-4 py-3 flex items-center justify-between rounded-2xl"
                   >
-                    <div className="bg-AppGreen h-10 w-10 text-center p-2 -rotate-45">
-                      <div className="rotate-45"> {surah.number}</div>
+                    <div className="bg-AppGreen h-10 w-10 text-center  -rotate-45">
+                      <div className="rotate-45 bg-AppGreen text-AppWhite h-10 w-10 text-center p-2"> {surah.number}</div>
                     </div>
                     <div className="flex flex-col ">
                       <div className="text-[12px] font-bold">
@@ -235,7 +271,7 @@ const Dashboard = () => {
               {filteredFavorites.map((fav) => (
                 <Link
                   key={`${fav.surahNumber}-${fav.ayahNumber}`}
-                  to={`/surah/${fav.surahNumber}`}
+                  to={`/surah/${fav.surahNumber}?ayah=${fav.ayahNumber}`}
                   className="w-[200px] lg:w-[250px] border hover:border-AppGreen px-3 py-3 flex items-center justify-between rounded-2xl"
                 >
                   <div className="bg-AppGreen h-10 w-10 text-center p-2 -rotate-45">
