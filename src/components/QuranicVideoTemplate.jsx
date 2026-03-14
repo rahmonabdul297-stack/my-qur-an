@@ -5,9 +5,9 @@ import { BsPlayFill, BsPauseFill } from "react-icons/bs";
 const AUDIO_BASE = "https://cdn.islamic.network/quran/audio/128/ar.alafasy";
 
 const VIDEO_OPTIONS = [
-  { id: "1", src: "/src/asset/videos/nature video 1.mp4", label: "template 1" },
-  { id: "2", src: "/src/asset/videos/nature video 2.mp4", label: "template 2" },
-  { id: "3", src: "/src/asset/videos/325502_small.mp4", label: "template 3" },
+  { id: "1", src: "/videos/nature video 1.mp4", label: "template 1" },
+  { id: "2", src: "/videos/nature video 2.mp4", label: "template 2" },
+  { id: "3", src: "/videos/325502_small.mp4", label: "template 3" },
 ];
 
 const QuranicVideoTemplate = ({
