@@ -1,10 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
 import { Link } from "react-router";
 import useFetch from "../hooks/usefetch";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
+import { LanguageContext } from "../context/languageContext";
 
 const JuzPage = ({ select, searchQuery = "" }) => {
+  const { t } = useContext(LanguageContext);
   const [Url] = useState(
     "https://api.alquran.cloud/v1/quran/quran-uthmani",
   );
@@ -63,7 +65,7 @@ const JuzPage = ({ select, searchQuery = "" }) => {
                     to={`/juz/${juzNum}`}
                     className="text-sm underline hover:text-AppGreen transition-colors"
                   >
-                    Read Juz
+                    {t("readJuz")}
                   </Link>
                 </div>
                 <div className="flex flex-col gap-3">
@@ -73,9 +75,9 @@ const JuzPage = ({ select, searchQuery = "" }) => {
                       to={`/surah/${surah.number}`}
                       className="flex items-center gap-3 p-3 rounded-xl border border-transparent hover:border-AppGreen bg-AppBlack/10 transition-all"
                     >
-                      <div className="surah-number-hex shrink-0">
-                        {surah.number}
-                      </div>
+                     <div className="bg-AppGreen h-10 w-10 text-center  -rotate-45">
+                      <div className="rotate-45 bg-AppGreen text-AppWhite h-10 w-10 text-center p-2"> {surah.number}</div>
+                    </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-sm truncate">
                           {surah.englishName}
@@ -89,7 +91,7 @@ const JuzPage = ({ select, searchQuery = "" }) => {
                           {surah.name}
                         </div>
                         <div className="text-xs opacity-80">
-                          {surah.numberOfAyahs} Ayahs
+                          {surah.numberOfAyahs} {t("ayahs")}
                         </div>
                       </div>
                     </Link>
@@ -99,7 +101,7 @@ const JuzPage = ({ select, searchQuery = "" }) => {
             ))}
           </div>
         ) : (
-          "No juz data"
+          t("noJuzData")
         )}
       </div>
     </div>

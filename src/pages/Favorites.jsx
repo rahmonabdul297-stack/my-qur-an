@@ -1,23 +1,24 @@
+import { useContext } from "react";
 import { Link } from "react-router";
 import { useFavorites } from "../context/favoritesContext";
+import { LanguageContext } from "../context/languageContext";
 
 const Favorites = () => {
   const { favorites } = useFavorites();
+  const { t } = useContext(LanguageContext);
 
   return (
     <div className="p-7 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">My Favorites</h1>
+      <h1 className="text-2xl font-bold mb-6">{t("myFavorites")}</h1>
       {favorites.length === 0 ? (
         <div className="text-center py-16 opacity-70">
-          <p className="text-lg">No favorites yet.</p>
-          <p className="text-sm mt-2">
-            Click on any ayah and select &quot;Add to favorites&quot; to save it here.
-          </p>
+          <p className="text-lg">{t("noFavoritesYet")}</p>
+          <p className="text-sm mt-2">{t("addToFavoritesHint")}</p>
           <Link
             to="/dashboard"
             className="inline-block mt-4 text-AppGreen hover:underline"
           >
-            Go to Dashboard
+            {t("goToDashboard")}
           </Link>
         </div>
       ) : (

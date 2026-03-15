@@ -1,16 +1,19 @@
 import { useContext, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { ThemeContext } from "../context/themeContext";
+import { LanguageContext } from "../context/languageContext";
 import { CiLight, CiSettings } from "react-icons/ci";
 import { GoTriangleDown, GoTriangleRight } from "react-icons/go";
-import { HiOutlineBars3 } from "react-icons/hi2";
+import { HiOutlineBars3, HiLanguage } from "react-icons/hi2";
 import Logo from "./logo";
 import { MdDarkMode } from "react-icons/md";
 import { NavArrays } from "./arrays";
 
 const GeneralHeader = () => {
   const { theme, setTheme } = useContext(ThemeContext);
+  const { language, setLanguage, t, LANGUAGES } = useContext(LanguageContext);
   const [dropdown, setDropdown] = useState(false);
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -34,7 +37,7 @@ const GeneralHeader = () => {
         </div>
 
         <section className="hidden lg:flex flex-col border-t-2 border-AppGreen mt-5">
-          <h4 className="font-bold py-4">Main</h4>
+          <h4 className="font-bold py-4">{t("main")}</h4>
           <div className="flex flex-col gap-3 py-3">
             {NavArrays.map((item) => (
               <Link key={item.id} to={item.path}>
@@ -42,7 +45,7 @@ const GeneralHeader = () => {
                   className={`flex items-center gap-2 hover:bg-black/30 hover:text-AppWhite rounded-md px-3 py-1 capitalize ${isActive(item.path) ? "bg-AppGreen text-AppWhite" : ""}`}
                 >
                   {item.icon}
-                  <span>{item.name}</span>
+                  <span>{t(item.name)}</span>
                 </div>
               </Link>
             ))}
@@ -50,14 +53,14 @@ const GeneralHeader = () => {
         </section>
 
         <div className="hidden lg:flex flex-col items-start gap-2 bottom-5 cursor-pointer capitalize border-t-2 mt-10 border-AppGreen">
-          <h4 className="font-bold">others</h4>
+          <h4 className="font-bold">{t("others")}</h4>
           <div
-            className="flex items-center justify-between gap-8"
+            className="flex items-center justify-between gap-8 w-full"
             onClick={() => setDropdown(!dropdown)}
           >
             <div className="flex items-center gap-2">
               <CiSettings size={24} />
-              settings
+              {t("settings")}
             </div>
             {dropdown ? <GoTriangleDown /> : <GoTriangleRight />}
           </div>
@@ -67,7 +70,39 @@ const GeneralHeader = () => {
             onClick={() => setTheme(!theme)}
           >
             {theme ? <MdDarkMode /> : <CiLight />}
-            {theme ? "light mode" : "dark mode"}
+            {theme ? t("lightMode") : t("darkMode")}
+          </div>
+          <div
+            className={dropdown ? "flex flex-col w-full" : "hidden"}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="flex items-center justify-between gap-2 px-3 cursor-pointer hover:opacity-80"
+              onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
+            >
+              <div className="flex items-center gap-2">
+                <HiLanguage size={20} />
+                {t("language")}
+              </div>
+              {languageMenuOpen ? <GoTriangleDown /> : <GoTriangleRight />}
+            </div>
+            {languageMenuOpen && (
+              <div className="flex flex-col pl-6 mt-1 gap-0.5">
+                {Object.entries(LANGUAGES).map(([code, { name }]) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => {
+                      setLanguage(code);
+                      setLanguageMenuOpen(false);
+                    }}
+                    className={`text-left px-2 py-1 rounded text-sm hover:bg-AppGreen/20 ${language === code ? "bg-AppGreen/30 font-semibold" : ""}`}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -105,7 +140,7 @@ const GeneralHeader = () => {
             </button>
           </div>
           <div className="p-4 flex flex-col gap-1">
-            <h4 className="font-bold py-3 text-AppGreen">Menu</h4>
+            <h4 className="font-bold py-3 text-AppGreen">{t("menu")}</h4>
             {NavArrays.map((item, index) => (
               <Link
                 key={item.id}
@@ -122,23 +157,64 @@ const GeneralHeader = () => {
                   }`}
                 >
                   {item.icon}
-                  <span className="capitalize">{item.name}</span>
+                  <span className="capitalize">{t(item.name)}</span>
                 </div>
               </Link>
             ))}
           </div>
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-AppGreen/30">
-            <div
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-AppGray/20 cursor-pointer"
-              onClick={() => {
-                setTheme(!theme);
-                setMobileMenuOpen(false);
-              }}
-            >
-              {theme ? <MdDarkMode size={20} /> : <CiLight size={20} />}
-              <span>{theme ? "Light mode" : "Dark mode"}</span>
+          <div className="absolute bottom-10 left-0 right-0 p-4 border-t border-AppGreen/30">
+          <div
+            className="flex items-center justify-between gap-8 cursor-pointer"
+            onClick={() => setDropdown(!dropdown)}
+          >
+            <div className="flex items-center gap-2 text-xl capitalize">
+              <CiSettings size={28} />
+              {t("settings")}
             </div>
+            {dropdown ? <GoTriangleDown /> : <GoTriangleRight />}
           </div>
+
+          <div
+            className={dropdown ? "flex items-center gap-2 px-3 py-3.5 capitalize cursor-pointer" : "hidden"}
+            onClick={() => setTheme(!theme)}
+          >
+            {theme ? <MdDarkMode /> : <CiLight />}
+            {theme ? t("lightMode") : t("darkMode")}
+          </div>
+          <div
+            className={dropdown ? "flex flex-col" : "hidden"}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="flex items-center justify-between gap-2 px-3 py-3.5 capitalize cursor-pointer hover:opacity-80"
+              onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
+            >
+              <div className="flex items-center gap-2">
+                <HiLanguage size={24} />
+                {t("language")}
+              </div>
+              {languageMenuOpen ? <GoTriangleDown /> : <GoTriangleRight />}
+            </div>
+            {languageMenuOpen && (
+              <div className="flex flex-col pl-6 pb-2 gap-0.5">
+                {Object.entries(LANGUAGES).map(([code, { name }]) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => {
+                      setLanguage(code);
+                      setLanguageMenuOpen(false);
+                    }}
+                    className={`text-left px-3 py-2 rounded text-sm hover:bg-AppGreen/20 ${language === code ? "bg-AppGreen/30 font-semibold" : ""}`}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        
         </nav>
       </div>
     </>

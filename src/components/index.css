@@ -6,6 +6,11 @@
     --color-AppWhite: #ddd;
      --color-AppGray: #333;
 }
+.container {
+  @apply max-w-[90vw] lg:max-w-[930px] mx-auto ;
+ 
+ 
+}
 .ubuntu-sans-mono-font {
   font-family: "Ubuntu Sans Mono", monospace;
   font-optical-sizing: auto;
@@ -102,3 +107,4 @@ h4{@apply uppercase}
   justify-content: center;
   font-weight: bold;
 }
+

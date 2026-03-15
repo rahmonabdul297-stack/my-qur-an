@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useContext } from "react";
 import { useFavorites } from "../context/favoritesContext";
 import { successNotification, toArabicNumbers } from "../utils/helpers";
 import { ThemeContext } from "../context/themeContext";
-import { HiOutlineDotsVertical } from "react-icons/hi";
+import { LanguageContext } from "../context/languageContext";
 
 const AyahItem = ({
   ayah,
@@ -12,11 +12,14 @@ const AyahItem = ({
   showTranslation = true,
   onPlayFromAyah,
   onOpenVideoTemplate,
+  onRepeatAyah,
+  shareUrl,
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const { isFavorite, toggleFavorite } = useFavorites();
   const { theme } = useContext(ThemeContext);
+  const { t } = useContext(LanguageContext);
   const isFav = isFavorite(surahNumber, ayah.numberInSurah ?? ayah.number);
 
   useEffect(() => {
@@ -37,7 +40,7 @@ const AyahItem = ({
       surahName,
       ayah.text,
     );
-    successNotification(isFav ? "Removed from favorites" : "Added to favorites");
+    successNotification(isFav ? t("removedFromFavorites") : t("addedToFavorites"));
     setShowDropdown(false);
   };
 
@@ -53,14 +56,51 @@ const AyahItem = ({
     setShowDropdown(false);
   };
 
+  const handleRepeat = (e, mode) => {
+    e.stopPropagation();
+    onRepeatAyah?.(ayah, mode);
+    setShowDropdown(false);
+  };
+
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    const ayahNum = ayah.numberInSurah ?? ayah.number;
+    const ayahLink = shareUrl || (surahNumber != null ? `${window.location.origin}/surah/${surahNumber}?ayah=${ayahNum}` : window.location.href);
+    const shareText = `${surahName || "Surah"} ${ayahNum}\n\n${ayah.text}${ayah.translation ? `\n\n${ayah.translation}` : ""}`;
+    const fullShareText = `${shareText}\n\n${ayahLink}`;
+    const shareData = {
+      title: `${surahName || "Surah"} ${ayahNum}`,
+      text: shareText,
+      url: ayahLink,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(fullShareText);
+        successNotification(t("shareCopied"));
+      }
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        await navigator.clipboard.writeText(fullShareText);
+        successNotification(t("shareCopied"));
+      }
+    }
+    setShowDropdown(false);
+  };
+
   return (
     <div
       ref={dropdownRef}
-      className={`relative flex gap-4 p-4 rounded-xl border transition-colors ${
+      className={`relative  flex gap-3  p-4 rounded-xl border transition-colors ${
         isPlaying
           ? "border-AppGreen bg-AppGreen/20"
           : "border-transparent hover:border-AppGreen/50 bg-AppGray/10"
       }`}
+         onClick={(e) => {
+          e.stopPropagation();
+          setShowDropdown((prev) => !prev);
+        }}
     >
       <span className="surah-number-hex shrink-0 text-sm">
         {toArabicNumbers(ayah.numberInSurah ?? ayah.number)}
@@ -77,21 +117,7 @@ const AyahItem = ({
             {ayah.translation}
           </p>
         )}
-        {ayah.page != null && (
-          <p className="text-xs opacity-60 mt-1">Page {ayah.page}</p>
-        )}
       </div>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setShowDropdown((prev) => !prev);
-        }}
-        className="shrink-0 p-2 rounded-lg hover:bg-AppGreen/20 transition-colors"
-        aria-label="More options"
-      >
-        <HiOutlineDotsVertical size={22} />
-      </button>
       {showDropdown && (
         <div
           className={`absolute right-4 top-full mt-1 z-20 min-w-[200px] py-2 rounded-lg border border-AppGreen/50 ${theme ? "bg-AppGray" : "bg-AppWhite text-AppGray"} shadow-lg`}
@@ -102,7 +128,7 @@ const AyahItem = ({
             onClick={handleToggleFavorite}
             className="w-full px-4 py-2 text-left hover:bg-AppGreen/20 transition-colors flex items-center gap-2"
           >
-            {isFav ? "★ Remove from favorites" : "☆ Add to favorites"}
+            {isFav ? t("removeFromFavorites") : t("addToFavorites")}
           </button>
           {onPlayFromAyah && (
             <button
@@ -110,7 +136,7 @@ const AyahItem = ({
               onClick={handlePlayFrom}
               className="w-full px-4 py-2 text-left hover:bg-AppGreen/20 transition-colors flex items-center gap-2"
             >
-              ▶ Play from this ayah
+              {t("playFromAyah")}
             </button>
           )}
           {onOpenVideoTemplate && (
@@ -119,9 +145,34 @@ const AyahItem = ({
               onClick={handleVideoTemplate}
               className="w-full px-4 py-2 text-left hover:bg-AppGreen/20 transition-colors flex items-center gap-2"
             >
-              🎬 Play in video template
+              {t("playInVideoTemplate")}
             </button>
           )}
+          {onRepeatAyah && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => handleRepeat(e, "once")}
+                className="w-full px-4 py-2 text-left hover:bg-AppGreen/20 transition-colors flex items-center gap-2"
+              >
+                {t("repeatAyahOnce")}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => handleRepeat(e, "infinite")}
+                className="w-full px-4 py-2 text-left hover:bg-AppGreen/20 transition-colors flex items-center gap-2"
+              >
+                {t("repeatAyahInfinite")}
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={handleShare}
+            className="w-full px-4 py-2 text-left hover:bg-AppGreen/20 transition-colors flex items-center gap-2"
+          >
+            {t("shareAyah")}
+          </button>
         </div>
       )}
     </div>

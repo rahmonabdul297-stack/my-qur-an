@@ -1,17 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import { Link } from "react-router";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
 import GeneralFooter from "../components/GeneralFooter";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { IoRefresh } from "react-icons/io5";
+import { LanguageContext } from "../context/languageContext";
 
-const PRAYERS = [
-  { key: "Fajr", label: "Fajr", sublabel: "Dawn" },
-  { key: "Dhuhr", label: "Dhuhr", sublabel: "Noon" },
-  { key: "Asr", label: "Asr", sublabel: "Afternoon" },
-  { key: "Maghrib", label: "Maghrib", sublabel: "Sunset" },
-  { key: "Isha", label: "Isha", sublabel: "Night" },
+const PRAYER_KEYS = [
+  { key: "Fajr", sublabelKey: "dawn" },
+  { key: "Dhuhr", sublabelKey: "noon" },
+  { key: "Asr", sublabelKey: "afternoon" },
+  { key: "Maghrib", sublabelKey: "sunset" },
+  { key: "Isha", sublabelKey: "night" },
 ];
 
 const fetchPrayerTimes = async (lat, lng) => {
@@ -41,6 +42,7 @@ const formatTime = (timeStr) => {
 };
 
 const Solah = () => {
+  const { t } = useContext(LanguageContext);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timings, setTimings] = useState(null);
@@ -142,13 +144,13 @@ const Solah = () => {
         to="/dashboard"
         className="inline-flex items-center gap-2 text-AppGreen hover:underline mb-6 px-7"
       >
-        ← Back to Dashboard
+        ← {t("backToDashboard")}
       </Link>
 
       <div className="px-7 max-w-2xl">
-        <h1 className="text-2xl font-bold mb-2">Prayer Times (Salah)</h1>
+        <h1 className="text-2xl font-bold mb-2">{t("prayerTimesTitle")}</h1>
         <p className="text-sm opacity-80 mb-6">
-          Daily prayer times based on your location
+          {t("prayerTimesSubtitle")}
         </p>
 
         {error && !timings && (
@@ -161,7 +163,7 @@ const Solah = () => {
                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-AppGreen text-white text-sm hover:opacity-90"
               >
                 <HiOutlineLocationMarker size={18} />
-                Use my location
+                {t("useMyLocation")}
               </button>
               {showManualInput && (
                 <form
@@ -170,7 +172,7 @@ const Solah = () => {
                 >
                   <input
                     type="text"
-                    placeholder="Enter city (e.g. London, Cairo)"
+                    placeholder={t("enterCity")}
                     value={manualAddress}
                     onChange={(e) => setManualAddress(e.target.value)}
                     className="flex-1 px-3 py-2 rounded-lg border bg-transparent text-sm outline-none focus:border-AppGreen"
@@ -179,7 +181,7 @@ const Solah = () => {
                     type="submit"
                     className="px-4 py-2 rounded-lg bg-AppGreen text-white text-sm hover:opacity-90 shrink-0"
                   >
-                    Get times
+                    {t("getTimes")}
                   </button>
                 </form>
               )}
@@ -202,7 +204,7 @@ const Solah = () => {
               ) : coords ? (
                 <span className="flex items-center gap-1.5 text-sm opacity-80">
                   <HiOutlineLocationMarker size={16} />
-                  Your location
+                  {t("yourLocation")}
                 </span>
               ) : null}
               {date?.readable && (
@@ -216,22 +218,22 @@ const Solah = () => {
                     : loadByAddress(locationName)
                 }
                 className="flex items-center gap-1 text-AppGreen text-sm hover:underline ml-auto"
-                title="Refresh"
+                title={t("refresh")}
               >
                 <IoRefresh size={16} />
-                Refresh
+                {t("refresh")}
               </button>
             </div>
 
             <div className="grid gap-3">
-              {PRAYERS.map(({ key, label, sublabel }) => (
+              {PRAYER_KEYS.map(({ key, sublabelKey }) => (
                 <div
                   key={key}
                   className="flex items-center justify-between p-4 rounded-xl border hover:border-AppGreen/50 transition-colors bg-AppGray/5"
                 >
                   <div>
-                    <p className="font-bold">{label}</p>
-                    <p className="text-xs opacity-70">{sublabel}</p>
+                    <p className="font-bold">{key}</p>
+                    <p className="text-xs opacity-70">{t(sublabelKey)}</p>
                   </div>
                   <p className="text-lg font-semibold text-AppGreen tabular-nums">
                     {formatTime(timings[key])}
@@ -247,7 +249,7 @@ const Solah = () => {
                   onClick={() => setShowManualInput(true)}
                   className="text-sm text-AppGreen hover:underline"
                 >
-                  Use a different city
+                  {t("useDifferentCity")}
                 </button>
               </div>
             )}
@@ -259,7 +261,7 @@ const Solah = () => {
               >
                 <input
                   type="text"
-                  placeholder="Enter city (e.g. London, Cairo)"
+                  placeholder={t("enterCity")}
                   value={manualAddress}
                   onChange={(e) => setManualAddress(e.target.value)}
                   className="flex-1 px-3 py-2 rounded-lg border bg-transparent text-sm outline-none focus:border-AppGreen"
@@ -268,7 +270,7 @@ const Solah = () => {
                   type="submit"
                   className="px-4 py-2 rounded-lg bg-AppGreen text-white text-sm hover:opacity-90"
                 >
-                  Update
+                  {t("update")}
                 </button>
               </form>
             )}

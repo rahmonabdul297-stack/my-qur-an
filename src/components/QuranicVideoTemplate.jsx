@@ -18,21 +18,30 @@ const QuranicVideoTemplate = ({
   showTranslation = true,
   reciter = DEFAULT_RECITER,
   onClose,
+  sharedPlayingIndex,
+  sharedIsPlaying,
+  onPlayFromIndex,
+  onPause,
 }) => {
   const videoRef = useRef(null);
   const audioRef = useRef(null);
   const blobUrlRef = useRef(null);
-  const [currentIndex, setCurrentIndex] = useState(startIndex);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [localIndex, setLocalIndex] = useState(startIndex);
   const [selectedVideoSrc, setSelectedVideoSrc] = useState(VIDEO_OPTIONS[0].src);
 
-  const ayah = ayahs[currentIndex];
-  const audioUrl = ayah?.audio ?? (ayah ? getAudioUrl(reciter, ayah.number) : null);
-  const currentIndexRef = useRef(currentIndex);
+  const useSharedAudio = onPlayFromIndex != null && onPause != null;
+  const [standaloneIsPlaying, setStandaloneIsPlaying] = useState(false);
+  const displayIndex = useSharedAudio
+    ? (sharedPlayingIndex ?? localIndex)
+    : localIndex;
+  const isPlaying = useSharedAudio ? sharedIsPlaying : standaloneIsPlaying;
+
+  const ayah = ayahs[displayIndex];
+  const currentIndexRef = useRef(displayIndex);
   const ayahsRef = useRef(ayahs);
   const reciterRef = useRef(reciter);
   const isAutoAdvancingRef = useRef(false);
-  currentIndexRef.current = currentIndex;
+  currentIndexRef.current = displayIndex;
   ayahsRef.current = ayahs;
   reciterRef.current = reciter;
 
@@ -41,13 +50,13 @@ const QuranicVideoTemplate = ({
     const audio = audioRef.current;
     const list = ayahsRef.current;
     if (!audio || !list?.length || index >= list.length) {
-      setIsPlaying(false);
-      setCurrentIndex(0);
+      setStandaloneIsPlaying(false);
+      setLocalIndex(0);
       return;
     }
     isAutoAdvancingRef.current = true;
     currentIndexRef.current = index;
-    setCurrentIndex(index);
+    setLocalIndex(index);
     const r = reciterRef.current;
     const url = list[index]?.audio ?? getAudioUrl(r, list[index]?.number);
     try {
@@ -56,10 +65,18 @@ const QuranicVideoTemplate = ({
       blobUrlRef.current = blobUrl;
       audio.src = blobUrl;
       await audio.play();
+      if (index + 1 < list.length) {
+        const nextUrl = list[index + 1]?.audio ?? getAudioUrl(reciterRef.current, list[index + 1]?.number);
+        getCachedAudioUrl(nextUrl).catch(() => {});
+      }
     } catch {
       try {
         audio.src = url;
         await audio.play();
+        if (index + 1 < list.length) {
+          const nextUrl = list[index + 1]?.audio ?? getAudioUrl(reciterRef.current, list[index + 1]?.number);
+          getCachedAudioUrl(nextUrl).catch(() => {});
+        }
       } catch {
         tryPlayAyahAtIndexRef.current?.(index + 1);
       }
@@ -70,6 +87,7 @@ const QuranicVideoTemplate = ({
   tryPlayAyahAtIndexRef.current = tryPlayAyahAtIndex;
 
   useEffect(() => {
+    if (useSharedAudio) return;
     const audio = audioRef.current;
     if (!audio || !ayahs?.length) return;
 
@@ -81,8 +99,8 @@ const QuranicVideoTemplate = ({
       if (next < list.length) {
         tryPlayAyahAtIndexRef.current?.(next);
       } else {
-        setIsPlaying(false);
-        setCurrentIndex(0);
+        setStandaloneIsPlaying(false);
+        setLocalIndex(0);
       }
     };
 
@@ -97,33 +115,58 @@ const QuranicVideoTemplate = ({
       audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("error", handleError);
     };
-  }, [ayahs?.length]);
+  }, [ayahs?.length, useSharedAudio]);
 
   useEffect(() => {
-    if (!isPlaying || !ayahs?.length || isAutoAdvancingRef.current) return;
-    tryPlayAyahAtIndexRef.current?.(currentIndex);
-  }, [currentIndex, isPlaying, ayahs?.length]);
+    if (useSharedAudio) return;
+    if (!standaloneIsPlaying || !ayahs?.length || isAutoAdvancingRef.current) return;
+    tryPlayAyahAtIndexRef.current?.(displayIndex);
+  }, [displayIndex, standaloneIsPlaying, ayahs?.length, useSharedAudio]);
 
   const togglePlay = () => {
-    if (isPlaying) {
-      audioRef.current?.pause();
-      setIsPlaying(false);
+    if (useSharedAudio) {
+      if (sharedIsPlaying) {
+        onPause();
+      } else {
+        onPlayFromIndex(sharedPlayingIndex ?? localIndex);
+      }
     } else {
-      setIsPlaying(true);
+      if (standaloneIsPlaying) {
+        audioRef.current?.pause();
+        setStandaloneIsPlaying(false);
+      } else {
+        setStandaloneIsPlaying(true);
+      }
     }
   };
 
   const goToPrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+    if (useSharedAudio) {
+      const idx = sharedPlayingIndex ?? localIndex;
+      if (idx > 0) onPlayFromIndex(idx - 1);
+      else setLocalIndex(0);
+    } else if (displayIndex > 0) {
+      const nextIdx = displayIndex - 1;
+      setLocalIndex(nextIdx);
+      if (standaloneIsPlaying) tryPlayAyahAtIndexRef.current?.(nextIdx);
     }
   };
 
   const goToNext = () => {
-    if (currentIndex < ayahs.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+    if (useSharedAudio) {
+      const idx = sharedPlayingIndex ?? localIndex;
+      if (idx < ayahs.length - 1) onPlayFromIndex(idx + 1);
+      else setLocalIndex(ayahs.length - 1);
+    } else if (displayIndex < ayahs.length - 1) {
+      const nextIdx = displayIndex + 1;
+      setLocalIndex(nextIdx);
+      if (standaloneIsPlaying) tryPlayAyahAtIndexRef.current?.(nextIdx);
     }
   };
+
+  useEffect(() => {
+    setLocalIndex(startIndex);
+  }, [startIndex]);
 
   useEffect(() => {
     return () => {
@@ -168,29 +211,47 @@ const QuranicVideoTemplate = ({
             <span className="text-white/80 text-sm">{surahName}</span>
           </div>
 
-          <div className=" flex flex-col justify-between items-center gap-6">
+          <div className="flex flex-col justify-between items-center gap-6 flex-1 min-h-0 overflow-hidden">
             <div
-              className=" p-8 max-w-4xl w-full text-center"
+              className="p-4 lg:p-8 w-full max-w-4xl mx-auto text-center flex flex-col items-center justify-center min-h-0 overflow-y-auto overflow-x-hidden"
               dir="rtl"
+              style={{ maxHeight: "calc(80vh - 220px)" }}
             >
-              <p className="text-3xl lg:text-4xl leading-loose text-white font-medium">
+              <p
+                className="text-white font-medium leading-loose overflow-hidden break-words"
+                style={{
+                  fontSize: "clamp(1.25rem, 3vw, 2.25rem)",
+                  lineHeight: "1.8",
+                }}
+              >
                 {ayah?.text}
               </p>
               {showTranslation && ayah?.translation && (
-                <p className="text-white/85 mt-3 text-base lg:text-lg max-w-2xl mx-auto" dir="ltr">
+                <p
+                  className="text-white/85 mt-3 overflow-hidden break-words mx-auto max-w-full"
+                  dir="ltr"
+                  style={{
+                    fontSize: "clamp(0.875rem, 2vw, 1.125rem)",
+                    maxWidth: "min(42rem, 90vw)",
+                  }}
+                >
                   {ayah.translation}
                 </p>
               )}
-              <p className="text-white/70 mt-3 text-sm">
+              <p className="text-white/70 mt-3 text-sm shrink-0">
                 Verse {toArabicNumbers(ayah?.numberInSurah ?? ayah?.number)} • Page {ayah?.page ?? "—"}
               </p>
             </div>
+          </div>
 
-            <div className="flex items-center gap-4">
+          {/* Video selector - bottom left */}
+ <section className="fixed  lg:pl-40 container bottom-0 right-0 flex flex-col lg:flex-row items-center   justify-between gap-4">
+  
+ <div className="flex items-center gap-4">
               <button
                 type="button"
                 onClick={goToPrev}
-                disabled={currentIndex === 0}
+                disabled={displayIndex === 0}
                 className="p-3 rounded-full bg-white/20 text-white disabled:opacity-40 hover:bg-white/30 transition-colors disabled:cursor-not-allowed"
                 aria-label="Previous verse"
               >
@@ -213,7 +274,7 @@ const QuranicVideoTemplate = ({
               <button
                 type="button"
                 onClick={goToNext}
-                disabled={currentIndex >= ayahs.length - 1}
+                disabled={displayIndex >= ayahs.length - 1}
                 className="p-3 rounded-full bg-white/20 text-white disabled:opacity-40 hover:bg-white/30 transition-colors disabled:cursor-not-allowed"
                 aria-label="Next verse"
               >
@@ -222,10 +283,7 @@ const QuranicVideoTemplate = ({
                 </svg>
               </button>
             </div>
-          </div>
-
-          {/* Video selector - bottom left */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[calc(100vw-3rem)] pb-1 mx-auto">
+          <div className=" flex gap-2 overflow-x-auto max-w-[calc(100vw-3rem)] pb-1 mx-auto">
             {VIDEO_OPTIONS.map((video) => (
               <button
                 key={video.id}
@@ -248,12 +306,13 @@ const QuranicVideoTemplate = ({
                   preload="metadata"
                   className="w-full h-full object-cover pointer-events-none"
                 />
-                <span className="absolute bottom-0 left-0 right-0 bg-AppGreen/70 text-white text-[10px] px-1 py-0.5 truncate">
+                <span className="w-full  bg-AppGreen/70 text-white text-[10px] px-1 py-0.5 truncate">
                   {video.label}
                 </span>
               </button>
             ))}
           </div>
+ </section>
         </div>
       </div>
       <audio ref={audioRef} />

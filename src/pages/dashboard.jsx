@@ -6,13 +6,15 @@ import useFetch from "../hooks/usefetch";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
 import { filterArrays } from "../components/arrays";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
 import { GoTriangleDown, GoTriangleUp } from "react-icons/go";
 import JuzPage from "./juz";
 import { useFavorites } from "../context/favoritesContext";
 import { useRecent } from "../context/recentContext";
+import { LanguageContext } from "../context/languageContext";
 import GeneralFooter from "../components/GeneralFooter";
 const Dashboard = () => {
+  const { t } = useContext(LanguageContext);
   const [Url] = useState(
     "https://api.alquran.cloud/v1/quran/quran-uthmani",
   );
@@ -63,7 +65,7 @@ const Dashboard = () => {
             <div className="my-8 flex items-center flex-1 lg:w-[30%] border rounded-2xl bg-white/10">
               <input
                 type="text"
-                placeholder="Search surahs, ayahs..."
+                placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-[90%] p-2 outline-0 bg-transparent placeholder:text-white/70"
@@ -85,13 +87,13 @@ const Dashboard = () => {
           </div>
           <div className="py-10 h-[40%] w-[70%] lg:w-[40%]  my-auto flex flex-col items-center justify-center gap-5">
             <div className="text-3xl lg:text-5xl font-black">
-              Read, Listen, Search, and Reflect on the Quran
+              {t("heroTitle")}
             </div>
             <Link
               to="/surah"
               className="lg:text-2xl w-full bg-AppGreen rounded-xl text-center flex items-center gap-3 justify-center py-3"
             >
-              Explore
+              {t("explore")}
               <IoMdArrowForward />
             </Link>
           </div>
@@ -101,30 +103,30 @@ const Dashboard = () => {
       <section className="p-7">
         <div className="grid gap-6 lg:grid-cols-2 mb-10">
           <div>
-            <h2 className="text-lg font-bold mb-3">Recently listened / read</h2>
+            <h2 className="text-lg font-bold mb-3 capitalize">{t("recentlyListened")}</h2>
             {recent.length === 0 ? (
               <p className="text-sm opacity-70 py-4">
-                Play or read ayahs to see them here.
+                {t("playOrReadPrompt")}
               </p>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {recent.slice(0, 8).map((item) => (
+              <div className="w-[100%] flex flex-wrap gap-2">
+                {recent.slice(0,1).map((item) => (
                   <Link
                     key={`${item.surahNumber}-${item.ayahNumber}`}
                     to={`/surah/${item.surahNumber}?ayah=${item.ayahNumber}`}
-                    className="w-[200px] lg:w-[240px] border hover:border-AppGreen px-3 py-3 flex items-center justify-between rounded-2xl transition-colors"
+                    className="w-full border-b hover:border-AppGreen px-3 py-3 flex items-center justify-between rounded-2xl transition-colors"
                   >
                     <div className="bg-AppGreen h-10 w-10 text-center  -rotate-45">
                       <div className="rotate-45 text-white bg-AppGreen h-10 w-10 text-center  font-bold text-sm p-2">
                         {item.ayahNumber}
                       </div>
                     </div>
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <div className="text-[12px] font-bold truncate">
+                    <div className="flex flex-col itcems-start flex-1 mx-4 min-w-0">
+                      <div className="text-[16px] font-bold truncate">
                         {item.surahName}
                       </div>
-                      <div className="text-xs opacity-80 truncate" dir="rtl">
-                        {item.ayahText}...
+                      <div className="text-sm opacity-80 truncate" dir="rtl">
+                        {item.ayahText.slice(0, 50)}.....
                       </div>
                     </div>
                   </Link>
@@ -143,7 +145,7 @@ const Dashboard = () => {
                 select === filter.id ? "border-b-2 border-AppGreen " : ""
               }
             >
-              {filter.name}
+              {t(filter.translationKey)}
             </div>
           ))}
         </div>
@@ -178,7 +180,7 @@ const Dashboard = () => {
 
                     <div className="flex flex-col ">
                       <div className="text-xs"> {surah.name}</div>
-                      <div> {surah.numberOfAyahs} Ayahs</div>
+                      <div> {surah.numberOfAyahs} {t("ayahs")}</div>
                     </div>
                   </Link>
                 ))
@@ -188,7 +190,7 @@ const Dashboard = () => {
                 <Apploader size={20} />
               ) : (
                 <p className="w-full py-8 text-center opacity-70">
-                  {searchQuery ? "No surahs match your search." : "no chapters!"}
+                  {searchQuery ? t("noSurahsMatch") : t("noChapters")}
                 </p>
               )
             ) : filteredSurahs.length > 0 ? (
@@ -198,9 +200,9 @@ const Dashboard = () => {
                   to={`/surah/${surah.number}`}
                   className="w-[180px] lg:w-[250px] border hover:border-AppGreen px-3 py-3 flex items-center justify-between rounded-2xl"
                 >
-                  <div className="bg-AppGreen h-10 w-10 text-center p-2 -rotate-45">
-                    <div className="rotate-45"> {surah.number}</div>
-                  </div>
+                    <div className="bg-AppGreen h-10 w-10 text-center  -rotate-45">
+                      <div className="rotate-45 bg-AppGreen text-AppWhite h-10 w-10 text-center p-2"> {surah.number}</div>
+                    </div>
                   <div className="flex flex-col ">
                     <div className="text-[12px] font-bold">
                       {" "}
@@ -212,9 +214,9 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col ">
+                    <div className="flex flex-col ">
                     <div className="text-xs"> {surah.name}</div>
-                    <div> {surah.numberOfAyahs} Ayahs</div>
+                    <div> {surah.numberOfAyahs} {t("ayahs")}</div>
                   </div>
                 </Link>
               ))
@@ -224,7 +226,7 @@ const Dashboard = () => {
               <Apploader size={20} />
             ) : (
               <p className="w-full py-8 text-center opacity-70">
-                {searchQuery ? "No surahs match your search." : "no chapters!"}
+                {searchQuery ? t("noSurahsMatch") : t("noChapters")}
               </p>
             )}
           </div>
@@ -235,11 +237,11 @@ const Dashboard = () => {
           >
             {showall ? (
               <span className="flex items-center">
-                Show Less Surahs <GoTriangleDown />
+                {t("showLessSurahs")} <GoTriangleDown />
               </span>
             ) : (
               <span className="flex items-center">
-                Show All Surahs <GoTriangleUp />
+                {t("showAllSurahs")} <GoTriangleUp />
               </span>
             )}
           </div>
@@ -259,11 +261,10 @@ const Dashboard = () => {
           {filteredFavorites.length === 0 ? (
             <div className="text-center py-16 opacity-70">
               <p className="text-lg">
-                {searchQuery ? "No favorites match your search." : "No favorites yet."}
+                {searchQuery ? t("noFavoritesMatch") : t("noFavoritesYet")}
               </p>
               <p className="text-sm mt-2">
-                {!searchQuery &&
-                  'Click on any ayah and select "Add to favorites" to save it here.'}
+                {!searchQuery && t("addToFavoritesHint")}
               </p>
             </div>
           ) : (
@@ -274,9 +275,10 @@ const Dashboard = () => {
                   to={`/surah/${fav.surahNumber}?ayah=${fav.ayahNumber}`}
                   className="w-[200px] lg:w-[250px] border hover:border-AppGreen px-3 py-3 flex items-center justify-between rounded-2xl"
                 >
-                  <div className="bg-AppGreen h-10 w-10 text-center p-2 -rotate-45">
-                    <div className="rotate-45">{fav.ayahNumber}</div>
-                  </div>
+               
+                    <div className="bg-AppGreen h-10 w-10 text-center  -rotate-45">
+                      <div className="rotate-45 bg-AppGreen text-AppWhite h-10 w-10 text-center p-2"> {fav.ayahNumber}</div>
+                    </div>
                   <div className="flex flex-col min-w-0 flex-1">
                     <div className="text-[12px] font-bold truncate">
                       {fav.surahName}

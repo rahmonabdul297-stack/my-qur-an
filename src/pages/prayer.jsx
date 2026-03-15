@@ -1,9 +1,11 @@
+import { useContext } from "react";
 import { Link } from "react-router";
 import { useState, useMemo, useEffect } from "react";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
 import GeneralFooter from "../components/GeneralFooter";
 import { CiSearch } from "react-icons/ci";
+import { LanguageContext } from "../context/languageContext";
 
 // Raw GitHub JSON - reliable, no CORS issues, no API key
 const DUAS_SOURCES = [
@@ -18,12 +20,13 @@ const DUAS_SOURCES = [
 ];
 
 const CATEGORIES = [
-  { value: "all", label: "All" },
-  { value: "daily", label: "Daily" },
-  { value: "prayer", label: "After Salah" },
+  { value: "all", labelKey: "all" },
+  { value: "daily", labelKey: "daily" },
+  { value: "prayer", labelKey: "afterSalah" },
 ];
 
 const Prayer = () => {
+  const { t } = useContext(LanguageContext);
   const [duas, setDuas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,13 +96,13 @@ const Prayer = () => {
         to="/dashboard"
         className="inline-flex items-center gap-2 text-AppGreen hover:underline mb-6 px-7"
       >
-        ← Back to Dashboard
+        ← {t("backToDashboard")}
       </Link>
 
       <div className="px-7 mb-6 ">
-        <h1 className="text-2xl font-bold mb-4">Supplications (Du&apos;as)</h1>
+        <h1 className="text-2xl font-bold mb-4">{t("supplicationsTitle")}</h1>
         <p className="text-sm opacity-80 mb-4">
-          Authentic Sunnah supplications for daily life and after prayer.
+          {t("supplicationsSubtitle")}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4">
@@ -107,7 +110,7 @@ const Prayer = () => {
             <CiSearch className="shrink-0 opacity-70" size={20} />
             <input
               type="text"
-              placeholder="Search duas by title, description..."
+              placeholder={t("searchDuasPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 bg-transparent outline-none px-2 text-sm"
@@ -120,7 +123,7 @@ const Prayer = () => {
           >
             {CATEGORIES.map((cat) => (
               <option key={cat.value} value={cat.value}>
-                {cat.label}
+                {t(cat.labelKey)}
               </option>
             ))}
           </select>
@@ -169,7 +172,7 @@ const Prayer = () => {
           ))
         ) : (
           <p className="w-full py-12 text-center opacity-70">
-            No supplications found. Try a different category or search.
+            {t("noSupplicationsFound")}
           </p>
         )}
       </div>

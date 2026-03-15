@@ -8,12 +8,12 @@ export const NavArrays = [
   { id: 1, name: "dashboard", icon: <BsHouse />, path: "/dashboard" },
   { id: 2, name: "solah", icon: <CiAlarmOn />, path: "/solah" },
   { id: 3, name: "surah", icon: <HiOutlineBookOpen />, path: "/surah" },
-  { id: 4, name: "prayer", icon: <GiPrayerBeads />, path: "/prayer" },
+  { id: 4, name: "Supplications", icon: <GiPrayerBeads />, path: "/prayer" },
   { id: 5, name: "favorites", icon: <MdFavorite />, path: "/favorites" },
 ];
 
 export const filterArrays = [
-  { id: 1, name: "surah ",  },
-  { id: 2, name: "juz ", },
-  { id: 3, name: "favorites ", },
+  { id: 1, name: "surah ", translationKey: "surahFilter" },
+  { id: 2, name: "juz ", translationKey: "juzFilter" },
+  { id: 3, name: "favorites ", translationKey: "favoritesFilter" },
 ];

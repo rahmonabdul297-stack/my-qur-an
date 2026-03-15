@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext, useMemo } from "react";
 import useFetch from "../hooks/usefetch";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
@@ -7,11 +7,13 @@ import AyahItem from "../components/AyahItem";
 import QuranicVideoTemplate from "../components/QuranicVideoTemplate";
 import { BsPlayFill, BsPauseFill } from "react-icons/bs";
 import { getCachedAudioUrl } from "../utils/audioCache";
-import { toArabicNumbers } from "../utils/helpers";
+import { toArabicNumbers, groupAyahsByPage } from "../utils/helpers";
 import { getAudioUrl, DEFAULT_RECITER, RECITERS } from "../utils/reciters";
 import { useRecent } from "../context/recentContext";
+import { LanguageContext } from "../context/languageContext";
 
 const JuzDetail = () => {
+  const { t } = useContext(LanguageContext);
   const { number } = useParams();
   const { data, error, loading } = useFetch(
     "https://api.alquran.cloud/v1/quran/quran-uthmani",
@@ -29,7 +31,14 @@ const JuzDetail = () => {
   const juzAyahsRef = useRef([]);
   const reciterRef = useRef(DEFAULT_RECITER);
   const [reciter, setReciter] = useState(DEFAULT_RECITER);
+  const [repeatMode, setRepeatMode] = useState(null);
+  const [repeatAyahIndex, setRepeatAyahIndex] = useState(null);
+  const repeatModeRef = useRef(null);
+  const repeatAyahIndexRef = useRef(null);
   const { addRecent } = useRecent();
+
+  repeatModeRef.current = repeatMode;
+  repeatAyahIndexRef.current = repeatAyahIndex;
 
   const juzNum = parseInt(number, 10);
   const juzAyahs = (
@@ -45,6 +54,8 @@ const JuzDetail = () => {
     ) ?? []
   ).sort((a, b) => a.number - b.number);
 
+  const juzAyahsByPage = useMemo(() => groupAyahsByPage(juzAyahs), [juzAyahs]);
+
   playingIndexRef.current = playingIndex;
   juzAyahsRef.current = juzAyahs;
   reciterRef.current = reciter;
@@ -54,6 +65,18 @@ const JuzDetail = () => {
     setPlayingIndex(null);
     setIsPlaying(false);
   }, [reciter]);
+
+  const hasAutoPlayedRef = useRef(false);
+  useEffect(() => {
+    hasAutoPlayedRef.current = false;
+  }, [number]);
+
+  useEffect(() => {
+    if (juzAyahs.length === 0 || hasAutoPlayedRef.current) return;
+    hasAutoPlayedRef.current = true;
+    setIsPlaying(true);
+    tryPlayAyahAtIndexRef.current?.(0);
+  }, [juzAyahs.length, number]);
 
   useEffect(() => {
     if (playingIndex != null && ayahRefs.current[playingIndex]) {
@@ -86,12 +109,20 @@ const JuzDetail = () => {
       await audio.play();
       const ayah = list[index];
       addRecent(ayah.surahNumber, ayah.numberInSurah ?? ayah.number, ayah.surahName, ayah.text);
+      if (index + 1 < list.length) {
+        const nextUrl = list[index + 1].audio ?? getAudioUrl(r, list[index + 1].number);
+        getCachedAudioUrl(nextUrl).catch(() => {});
+      }
     } catch {
       try {
         audio.src = url;
         await audio.play();
         const ayah = list[index];
         addRecent(ayah.surahNumber, ayah.numberInSurah ?? ayah.number, ayah.surahName, ayah.text);
+        if (index + 1 < list.length) {
+          const nextUrl = list[index + 1].audio ?? getAudioUrl(r, list[index + 1].number);
+          getCachedAudioUrl(nextUrl).catch(() => {});
+        }
       } catch {
         tryPlayAyahAtIndexRef.current?.(index + 1);
       }
@@ -107,6 +138,22 @@ const JuzDetail = () => {
       const list = juzAyahsRef.current;
       if (!list?.length) return;
       const current = playingIndexRef.current ?? -1;
+      const mode = repeatModeRef.current;
+      const repeatIdx = repeatAyahIndexRef.current;
+
+      if (mode === "infinite" && repeatIdx != null && current === repeatIdx) {
+        tryPlayAyahAtIndexRef.current?.(repeatIdx);
+        return;
+      }
+      if (mode === "once" && repeatIdx != null && current === repeatIdx) {
+        playingIndexRef.current = null;
+        setPlayingIndex(null);
+        setIsPlaying(false);
+        setRepeatMode(null);
+        setRepeatAyahIndex(null);
+        return;
+      }
+
       const next = current + 1;
       if (next < list.length) {
         tryPlayAyahAtIndexRef.current?.(next);
@@ -114,6 +161,8 @@ const JuzDetail = () => {
         playingIndexRef.current = null;
         setPlayingIndex(null);
         setIsPlaying(false);
+        setRepeatMode(null);
+        setRepeatAyahIndex(null);
       }
     };
 
@@ -147,13 +196,32 @@ const JuzDetail = () => {
 
   const handlePlayFromAyah = (ayah) => {
     const index = juzAyahs.findIndex((a) => a.number === ayah.number);
-    if (index >= 0) playFromIndex(index);
+    if (index >= 0) {
+      setRepeatMode(null);
+      setRepeatAyahIndex(null);
+      playFromIndex(index);
+    }
   };
 
   const handleOpenVideoTemplate = (ayah) => {
     const index = juzAyahs.findIndex((a) => a.number === ayah.number);
     if (index >= 0) {
       setVideoTemplateState({ open: true, startIndex: index });
+    }
+  };
+
+  const handleVideoTemplatePause = () => {
+    audioRef.current?.pause();
+    setIsPlaying(false);
+  };
+
+  const handleRepeatAyah = (ayahItem, mode) => {
+    const index = juzAyahs.findIndex((a) => a.number === ayahItem.number);
+    if (index >= 0) {
+      setRepeatMode(mode);
+      setRepeatAyahIndex(index);
+      setIsPlaying(true);
+      tryPlayAyahAtIndexRef.current?.(index);
     }
   };
 
@@ -173,14 +241,14 @@ const JuzDetail = () => {
         to="/dashboard"
         className="inline-flex items-center gap-2 text-AppGreen hover:underline mb-6"
       >
-        ← Back to Dashboard
+        ← {t("backToDashboard")}
       </Link>
       <div className="mb-8 p-6 rounded-2xl border border-AppGreen/30 bg-AppGray/20">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold">Juz {number}</h1>
             <p className="text-sm opacity-80 mt-1">
-              {toArabicNumbers(juzAyahs.length)} Ayahs
+              {toArabicNumbers(juzAyahs.length)} {t("ayahs")}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -188,7 +256,7 @@ const JuzDetail = () => {
               value={reciter}
               onChange={(e) => setReciter(e.target.value)}
               className="px-3 py-2 rounded-xl border border-AppGreen/50 bg-transparent text-sm min-w-[140px] focus:outline-none focus:ring-2 focus:ring-AppGreen/50"
-              title="Select reciter"
+              title={t("selectReciter")}
             >
               {RECITERS.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -204,12 +272,12 @@ const JuzDetail = () => {
               {isPlaying ? (
                 <>
                   <BsPauseFill size={20} />
-                  Pause
+                  {t("pause")}
                 </>
               ) : (
                 <>
                   <BsPlayFill size={20} />
-                  Listen
+                  {t("listen")}
                 </>
               )}
             </button>
@@ -217,19 +285,31 @@ const JuzDetail = () => {
         </div>
       </div>
       <div className="flex flex-col gap-4">
-        {juzAyahs.map((ayah, index) => (
-          <div
-            key={ayah.number}
-            ref={(el) => { ayahRefs.current[index] = el; }}
-          >
-            <AyahItem
-              ayah={ayah}
-              surahNumber={ayah.surahNumber}
-              surahName={ayah.surahName}
-              isPlaying={playingIndex === index}
-              onPlayFromAyah={handlePlayFromAyah}
-              onOpenVideoTemplate={handleOpenVideoTemplate}
-            />
+        {juzAyahsByPage.map(({ page, ayahs: pageAyahs }) => (
+          <div key={page} className="flex flex-col gap-4">
+            {pageAyahs.map((ayah) => {
+              const index = juzAyahs.findIndex((a) => a.number === ayah.number);
+              return (
+                <div
+                  key={ayah.number}
+                  ref={(el) => { ayahRefs.current[index] = el; }}
+                >
+                  <AyahItem
+                    ayah={ayah}
+                    surahNumber={ayah.surahNumber}
+                    surahName={ayah.surahName}
+                    isPlaying={playingIndex === index}
+                    onPlayFromAyah={handlePlayFromAyah}
+                    onOpenVideoTemplate={handleOpenVideoTemplate}
+                    onRepeatAyah={handleRepeatAyah}
+                    shareUrl={`${window.location.origin}/surah/${ayah.surahNumber}?ayah=${ayah.numberInSurah ?? ayah.number}`}
+                  />
+                </div>
+              );
+            })}
+            <p className="text-sm opacity-70 text-center py-2" dir="ltr">
+              {t("page")} {page}
+            </p>
           </div>
         ))}
       </div>
@@ -241,6 +321,10 @@ const JuzDetail = () => {
           surahName={`Juz ${number}`}
           reciter={reciter}
           onClose={() => setVideoTemplateState({ open: false, startIndex: 0 })}
+          sharedPlayingIndex={playingIndex}
+          sharedIsPlaying={isPlaying}
+          onPlayFromIndex={playFromIndex}
+          onPause={handleVideoTemplatePause}
         />
       )}
     </div>
