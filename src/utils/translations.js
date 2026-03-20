@@ -107,6 +107,10 @@ export const translations = {
     surahNotFound: "Surah not found",
     previous: "Previous",
     next: "Next",
+    prevSurah: "Previous surah",
+    nextSurah: "Next surah",
+    prevJuz: "Previous juz",
+    nextJuz: "Next juz",
   },
   ar: {
     main: "الرئيسية",
@@ -198,6 +202,10 @@ export const translations = {
     surahNotFound: "السورة غير موجودة",
     previous: "السابق",
     next: "التالي",
+    prevSurah: "السورة السابقة",
+    nextSurah: "السورة التالية",
+    prevJuz: "الجزء السابق",
+    nextJuz: "الجزء التالي",
   },
   ha: {
     main: "Babba",
@@ -289,6 +297,10 @@ export const translations = {
     surahNotFound: "Ba a sami surori ba",
     previous: "Baya",
     next: "Gaba",
+    prevSurah: "Surori na baya",
+    nextSurah: "Surori na gaba",
+    prevJuz: "Juzu na baya",
+    nextJuz: "Juzu na gaba",
   },
   yo: {
     main: "Akọkọ",
@@ -380,5 +392,9 @@ export const translations = {
     surahNotFound: "Ko rí Sūrah",
     previous: "Ọ̀ṣẹ́",
     next: "Tẹ̀lé",
+    prevSurah: "Sūrah ṣỌ̀ṣẹ́",
+    nextSurah: "Sūrah tẹ̀lé",
+    prevJuz: "Juzu ṣỌ̀ṣẹ́",
+    nextJuz: "Juzu tẹ̀lé",
   },
 };

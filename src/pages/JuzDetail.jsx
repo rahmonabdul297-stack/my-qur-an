@@ -1,9 +1,10 @@
-import { useParams, Link } from "react-router";
+import { useParams, Link, useNavigate } from "react-router";
 import { useRef, useState, useEffect, useContext, useMemo } from "react";
 import useFetch from "../hooks/usefetch";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
 import AyahItem from "../components/AyahItem";
+import AudioPlayerBar from "../components/AudioPlayerBar";
 import QuranicVideoTemplate from "../components/QuranicVideoTemplate";
 import { BsPlayFill, BsPauseFill } from "react-icons/bs";
 import { getCachedAudioUrl } from "../utils/audioCache";
@@ -15,6 +16,7 @@ import { LanguageContext } from "../context/languageContext";
 const JuzDetail = () => {
   const { t } = useContext(LanguageContext);
   const { number } = useParams();
+  const navigate = useNavigate();
   const { data, error, loading } = useFetch(
     "https://api.alquran.cloud/v1/quran/quran-uthmani",
   );
@@ -47,9 +49,9 @@ const JuzDetail = () => {
         .filter((ayah) => ayah.juz === juzNum)
         .map((ayah) => ({
           ...ayah,
-          audio: ayah.audio ?? getAudioUrl(reciter, ayah.number),
           surahName: surah.englishName,
           surahNumber: surah.number,
+          audio: ayah.audio ?? getAudioUrl(reciter, ayah.number, { surahNumber: surah.number, numberInSurah: ayah.numberInSurah }),
         })),
     ) ?? []
   ).sort((a, b) => a.number - b.number);
@@ -100,7 +102,8 @@ const JuzDetail = () => {
     playingIndexRef.current = index;
     setPlayingIndex(index);
     const r = reciterRef.current;
-    const url = list[index].audio ?? getAudioUrl(r, list[index].number);
+    const ayah = list[index];
+    const url = ayah.audio ?? getAudioUrl(r, ayah.number, { surahNumber: ayah.surahNumber, numberInSurah: ayah.numberInSurah });
     try {
       const blobUrl = await getCachedAudioUrl(url);
       if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
@@ -110,7 +113,8 @@ const JuzDetail = () => {
       const ayah = list[index];
       addRecent(ayah.surahNumber, ayah.numberInSurah ?? ayah.number, ayah.surahName, ayah.text);
       if (index + 1 < list.length) {
-        const nextUrl = list[index + 1].audio ?? getAudioUrl(r, list[index + 1].number);
+        const nextAyah = list[index + 1];
+        const nextUrl = nextAyah.audio ?? getAudioUrl(r, nextAyah.number, { surahNumber: nextAyah.surahNumber, numberInSurah: nextAyah.numberInSurah });
         getCachedAudioUrl(nextUrl).catch(() => {});
       }
     } catch {
@@ -120,7 +124,8 @@ const JuzDetail = () => {
         const ayah = list[index];
         addRecent(ayah.surahNumber, ayah.numberInSurah ?? ayah.number, ayah.surahName, ayah.text);
         if (index + 1 < list.length) {
-          const nextUrl = list[index + 1].audio ?? getAudioUrl(r, list[index + 1].number);
+          const nextAyah = list[index + 1];
+          const nextUrl = nextAyah.audio ?? getAudioUrl(r, nextAyah.number, { surahNumber: nextAyah.surahNumber, numberInSurah: nextAyah.numberInSurah });
           getCachedAudioUrl(nextUrl).catch(() => {});
         }
       } catch {
@@ -225,6 +230,36 @@ const JuzDetail = () => {
     }
   };
 
+  const handlePrevAyah = () => {
+    const idx = playingIndex ?? 0;
+    if (idx > 0) {
+      setRepeatMode(null);
+      setRepeatAyahIndex(null);
+      playFromIndex(idx - 1);
+    }
+  };
+
+  const handleNextAyah = () => {
+    const idx = playingIndex ?? 0;
+    if (idx < juzAyahs.length - 1) {
+      setRepeatMode(null);
+      setRepeatAyahIndex(null);
+      playFromIndex(idx + 1);
+    }
+  };
+
+  const handlePrevJuz = () => {
+    if (juzNum > 1) {
+      navigate(`/juz/${juzNum - 1}`);
+    }
+  };
+
+  const handleNextJuz = () => {
+    if (juzNum < 30) {
+      navigate(`/juz/${juzNum + 1}`, { state: { autoPlay: true } });
+    }
+  };
+
   useEffect(() => {
     return () => {
       if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
@@ -284,7 +319,25 @@ const JuzDetail = () => {
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-4">
+      {!videoTemplateState.open && (
+        <AudioPlayerBar
+          isPlaying={isPlaying}
+          onPlayPause={togglePlayPause}
+          onPrev={handlePrevAyah}
+          onNext={handleNextAyah}
+          canGoPrev={(playingIndex ?? 0) > 0}
+          canGoNext={(playingIndex ?? 0) < juzAyahs.length - 1}
+          onPrevSurah={handlePrevJuz}
+          onNextSurah={handleNextJuz}
+          canGoPrevSurah={juzNum > 1}
+          canGoNextSurah={juzNum < 30}
+          prevSurahLabel={t("prevJuz")}
+          nextSurahLabel={t("nextJuz")}
+          currentLabel={playingIndex != null && juzAyahs[playingIndex] ? `${juzAyahs[playingIndex].surahName} ${juzAyahs[playingIndex].numberInSurah}` : null}
+        />
+      )}
+
+      <div className="flex flex-col gap-4 pb-24">
         {juzAyahsByPage.map(({ page, ayahs: pageAyahs }) => (
           <div key={page} className="flex flex-col gap-4">
             {pageAyahs.map((ayah) => {

@@ -4,6 +4,7 @@ import useFetch from "../hooks/usefetch";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
 import AyahItem from "../components/AyahItem";
+import AudioPlayerBar from "../components/AudioPlayerBar";
 import QuranicVideoTemplate from "../components/QuranicVideoTemplate";
 import { BsPlayFill, BsPauseFill, BsThreeDotsVertical } from "react-icons/bs";
 import { getCachedAudioUrl } from "../utils/audioCache";
@@ -67,11 +68,13 @@ const SurahDetail = () => {
         { url: a.audio, secondary: a.audioSecondary?.[0] },
       ]),
     );
+    const surahNum = parseInt(number, 10);
     return arabic.ayahs.map((a) => {
       const aud = audioByNum[a.number];
       return {
         ...a,
-        audio: aud?.url ?? getAudioUrl(reciter, a.number),
+        surahNumber: surahNum,
+        audio: aud?.url ?? getAudioUrl(reciter, a.number, { surahNumber: surahNum, numberInSurah: a.numberInSurah }),
         audioSecondary: aud?.secondary,
         translation: enByNum[a.numberInSurah] ?? "",
       };
@@ -161,8 +164,9 @@ const SurahDetail = () => {
     playingIndexRef.current = index;
     setPlayingIndex(index);
     const r = reciterRef.current;
-    const url = list[index].audio ?? getAudioUrl(r, list[index].number);
-    const urlSecondary = list[index].audioSecondary;
+    const ayah = list[index];
+    const url = ayah.audio ?? getAudioUrl(r, ayah.number, { surahNumber: ayah.surahNumber ?? parseInt(number, 10), numberInSurah: ayah.numberInSurah });
+    const urlSecondary = ayah.audioSecondary;
     const tryUrl = async (u) => {
       if (!u) return false;
       try {
@@ -191,7 +195,8 @@ const SurahDetail = () => {
         list[index].text,
       );
       if (index + 1 < list.length) {
-        const nextUrl = list[index + 1].audio ?? getAudioUrl(r, list[index + 1].number);
+        const nextAyah = list[index + 1];
+        const nextUrl = nextAyah.audio ?? getAudioUrl(r, nextAyah.number, { surahNumber: nextAyah.surahNumber ?? parseInt(number, 10), numberInSurah: nextAyah.numberInSurah });
         getCachedAudioUrl(nextUrl).catch(() => {});
       }
       return;
@@ -205,7 +210,8 @@ const SurahDetail = () => {
         list[index].text,
       );
       if (index + 1 < list.length) {
-        const nextUrl = list[index + 1].audio ?? getAudioUrl(r, list[index + 1].number);
+        const nextAyah = list[index + 1];
+        const nextUrl = nextAyah.audio ?? getAudioUrl(r, nextAyah.number, { surahNumber: nextAyah.surahNumber ?? parseInt(number, 10), numberInSurah: nextAyah.numberInSurah });
         getCachedAudioUrl(nextUrl).catch(() => {});
       }
       return;
@@ -310,6 +316,42 @@ const SurahDetail = () => {
       setRepeatAyahIndex(index);
       setIsPlaying(true);
       tryPlayAyahAtIndexRef.current?.(index);
+    }
+  };
+
+  const handlePrevAyah = () => {
+    const idx = playingIndex ?? 0;
+    if (idx > 0) {
+      setRepeatMode(null);
+      setRepeatAyahIndex(null);
+      playFromIndex(idx - 1);
+    }
+  };
+
+  const handleNextAyah = () => {
+    const idx = playingIndex ?? 0;
+    if (idx < ayahs.length - 1) {
+      setRepeatMode(null);
+      setRepeatAyahIndex(null);
+      playFromIndex(idx + 1);
+    } else if (idx === ayahs.length - 1 && parseInt(number, 10) < 114) {
+      setRepeatMode(null);
+      setRepeatAyahIndex(null);
+      navigate(`/surah/${parseInt(number, 10) + 1}`, { state: { autoPlay: true, reciter: reciterRef.current } });
+    }
+  };
+
+  const handlePrevSurah = () => {
+    const num = parseInt(number, 10);
+    if (num > 1) {
+      navigate(`/surah/${num - 1}`, { state: { reciter: reciterRef.current } });
+    }
+  };
+
+  const handleNextSurah = () => {
+    const num = parseInt(number, 10);
+    if (num < 114) {
+      navigate(`/surah/${num + 1}`, { state: { autoPlay: true, reciter: reciterRef.current } });
     }
   };
 
@@ -419,7 +461,7 @@ const SurahDetail = () => {
         </div>
       </div>
 
-      <div className="container flex flex-col gap-4 mt-[170px] lg:p-6">
+      <div className="container flex flex-col gap-4 mt-[170px] lg:p-6 pb-24">
         {ayahsByPage.map(({ page, ayahs: pageAyahs }) => (
           <div key={page} className="flex flex-col gap-4">
             {pageAyahs.map((ayah) => {
@@ -452,6 +494,24 @@ const SurahDetail = () => {
           </div>
         ))}
       </div>
+
+      {!videoTemplateState.open && (
+        <AudioPlayerBar
+          isPlaying={isPlaying}
+          onPlayPause={togglePlayPause}
+          onPrev={handlePrevAyah}
+          onNext={handleNextAyah}
+          canGoPrev={(playingIndex ?? 0) > 0}
+          canGoNext={(playingIndex ?? 0) < ayahs.length - 1 || ((playingIndex ?? 0) === ayahs.length - 1 && parseInt(number, 10) < 114)}
+          onPrevSurah={handlePrevSurah}
+          onNextSurah={handleNextSurah}
+          canGoPrevSurah={parseInt(number, 10) > 1}
+          canGoNextSurah={parseInt(number, 10) < 114}
+          prevSurahLabel={t("prevSurah")}
+          nextSurahLabel={t("nextSurah")}
+          currentLabel={playingIndex != null && ayahs[playingIndex] ? `${surah.englishName} ${ayahs[playingIndex].numberInSurah}` : null}
+        />
+      )}
 
       {videoTemplateState.open && (
         <QuranicVideoTemplate

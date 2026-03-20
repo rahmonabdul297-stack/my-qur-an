@@ -58,7 +58,8 @@ const QuranicVideoTemplate = ({
     currentIndexRef.current = index;
     setLocalIndex(index);
     const r = reciterRef.current;
-    const url = list[index]?.audio ?? getAudioUrl(r, list[index]?.number);
+    const ayah = list[index];
+    const url = ayah?.audio ?? getAudioUrl(r, ayah?.number, { surahNumber: ayah?.surahNumber, numberInSurah: ayah?.numberInSurah });
     try {
       const blobUrl = await getCachedAudioUrl(url);
       if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
@@ -66,7 +67,8 @@ const QuranicVideoTemplate = ({
       audio.src = blobUrl;
       await audio.play();
       if (index + 1 < list.length) {
-        const nextUrl = list[index + 1]?.audio ?? getAudioUrl(reciterRef.current, list[index + 1]?.number);
+        const nextAyah = list[index + 1];
+        const nextUrl = nextAyah?.audio ?? getAudioUrl(reciterRef.current, nextAyah?.number, { surahNumber: nextAyah?.surahNumber, numberInSurah: nextAyah?.numberInSurah });
         getCachedAudioUrl(nextUrl).catch(() => {});
       }
     } catch {
@@ -74,7 +76,8 @@ const QuranicVideoTemplate = ({
         audio.src = url;
         await audio.play();
         if (index + 1 < list.length) {
-          const nextUrl = list[index + 1]?.audio ?? getAudioUrl(reciterRef.current, list[index + 1]?.number);
+          const nextAyah = list[index + 1];
+          const nextUrl = nextAyah?.audio ?? getAudioUrl(reciterRef.current, nextAyah?.number, { surahNumber: nextAyah?.surahNumber, numberInSurah: nextAyah?.numberInSurah });
           getCachedAudioUrl(nextUrl).catch(() => {});
         }
       } catch {
