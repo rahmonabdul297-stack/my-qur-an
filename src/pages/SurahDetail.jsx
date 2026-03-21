@@ -433,7 +433,7 @@ const SurahDetail = () => {
               ) : (
                 <>
                   <BsPlayFill size={20} />
-                  Listen
+                  Play
                 </>
               )}
             </button>
