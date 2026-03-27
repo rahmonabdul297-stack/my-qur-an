@@ -17,6 +17,11 @@ function App() {
   return (
     <>
     <div className={theme ? "bg-AppGray text-AppWhite" : "bg-AppWhite text-AppBlack"}>
+<button id="installBtn" style="padding:12px 18px;font-size:16px;" class name="bg-green-500 rounded-xl">
+  Install App
+</button>
+
+
       <BrowserRouter>
       <ToastContainer
             position="top-right"
@@ -40,6 +45,23 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+<script>
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  document.getElementById('installBtn').style.display = 'block';
+});
+
+document.getElementById('installBtn').addEventListener('click', () => {
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+  });
+});
+</script>
       </div>
     </>
   );
