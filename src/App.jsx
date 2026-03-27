@@ -10,14 +10,16 @@ import SurahDetail from "./pages/SurahDetail";
 import JuzDetail from "./pages/JuzDetail";
 import Favorites from "./pages/Favorites";
 import { ToastContainer } from "react-toastify";
-import { useContext } from "react";
+import { useContext, useState} from "react";
 import { ThemeContext } from "./context/themeContext";
 function App() {
   const {theme}=useContext(ThemeContext)
+const [installBtn,setInstallBtn]=useState(false)
+settimeout(()=>(setInstallBtn(! installBtn),1000)
   return (
     <>
     <div className={theme ? "bg-AppGray text-AppWhite" : "bg-AppWhite text-AppBlack"}>
-<button id="installBtn" style="padding:12px 18px;font-size:16px;" class name="bg-green-500 rounded-xl">
+<button id="installBtn" style="padding:12px 18px;font-size:16px;" className={installBtn?"bg-green-500 rounded-xl fixed bottom-10 right-5": "hidden"}>
   Install App
 </button>
 
