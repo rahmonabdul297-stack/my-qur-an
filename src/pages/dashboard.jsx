@@ -1,20 +1,28 @@
 import { CiSearch } from "react-icons/ci";
 import { IoMdArrowForward } from "react-icons/io";
-import { MdFavorite } from "react-icons/md";
+import { MdDownload, MdFavorite } from "react-icons/md";
 import { Link } from "react-router";
 import useFetch from "../hooks/usefetch";
 import AppError from "../components/Apperror";
 import { Apploader } from "../components/Apploader";
 import { filterArrays } from "../components/arrays";
-import { useState, useMemo, useContext } from "react";
+import { useState, useMemo, useContext, useEffect } from "react";
 import { GoTriangleDown, GoTriangleUp } from "react-icons/go";
 import JuzPage from "./juz";
 import { useFavorites } from "../context/favoritesContext";
 import { useRecent } from "../context/recentContext";
 import { LanguageContext } from "../context/languageContext";
 import GeneralFooter from "../components/GeneralFooter";
+import { usePwaInstall } from "../hooks/usePwaInstall";
+import { infoNotification } from "../utils/helpers";
+
+/** Chrome Help: install / use a Progressive Web App (same “app” as this site in the browser). */
+const CHROME_PWA_INSTALL_HELP =
+  "https://support.google.com/chrome/answer/9653311";
+
 const Dashboard = () => {
   const { t } = useContext(LanguageContext);
+  const { isStandalone, isIOS, canInstall, promptInstall } = usePwaInstall();
   const [Url] = useState(
     "https://api.alquran.cloud/v1/quran/quran-uthmani",
   );
@@ -24,6 +32,12 @@ const Dashboard = () => {
   const [select, setSelected] = useState(1);
   const [showall, setshowall] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showDownloadApp, setShowDownloadApp] = useState(false);
+
+  useEffect(() => {
+    const timerId = setTimeout(() => setShowDownloadApp(true), 10_000);
+    return () => clearTimeout(timerId);
+  }, []);
 
   const filteredSurahs = useMemo(() => {
     const surahs = data?.data?.surahs ?? [];
@@ -46,6 +60,18 @@ const Dashboard = () => {
         f.ayahText?.toLowerCase().includes(q),
     );
   }, [favorites, searchQuery]);
+
+  const handleInstallApp = async () => {
+    if (canInstall) {
+      await promptInstall();
+      return;
+    }
+    if (isIOS) {
+      infoNotification(t("pwaAddToHomeScreenIOS"));
+      return;
+    }
+    window.open(CHROME_PWA_INSTALL_HELP, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className="h-screen font-[ubuntu-sans-mono-font] ">
@@ -109,7 +135,7 @@ const Dashboard = () => {
                 {t("playOrReadPrompt")}
               </p>
             ) : (
-              <div className="w-[100%] flex flex-wrap gap-2">
+              <div className="w-full flex flex-wrap gap-2">
                 {recent.slice(0,1).map((item) => (
                   <Link
                     key={`${item.surahNumber}-${item.ayahNumber}`}
@@ -121,7 +147,7 @@ const Dashboard = () => {
                         {item.ayahNumber}
                       </div>
                     </div>
-                    <div className="flex flex-col itcems-start flex-1 mx-4 min-w-0">
+                    <div className="flex flex-col items-start flex-1 mx-4 min-w-0">
                       <div className="text-[16px] font-bold truncate">
                         {item.surahName}
                       </div>
@@ -294,6 +320,18 @@ const Dashboard = () => {
         </div>
       </section>
       <GeneralFooter />
+
+      {showDownloadApp && !isStandalone && (
+        <button
+          type="button"
+          onClick={handleInstallApp}
+          className="fixed animate-bounce bottom-5 right-4 z-50 flex cursor-pointer items-center gap-2 rounded-full border-0 bg-AppGreen px-4 py-3 text-sm font-semibold text-AppWhite shadow-lg shadow-black/25 transition-opacity hover:opacity-90 md:bottom-6 md:right-6"
+          aria-label={t("installApp")}
+        >
+          <MdDownload className="shrink-0" size={22} />
+          <span>{t("installApp")}</span>
+        </button>
+      )}
     </div>
   );
 };

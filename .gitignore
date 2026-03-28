@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Android (Capacitor) — keep source; ignore local/build noise
+android/.gradle
+android/**/build
+android/captures
+android/local.properties
+android/*.iml
+android/.idea

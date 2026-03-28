@@ -5,5 +5,6 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-   base: "/",
+  // Relative base so the packaged Android app loads JS/CSS from the WebView correctly.
+  base: "./",
 });

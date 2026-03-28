@@ -12,14 +12,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playpen+Sans+Arabic:wght@100..800&family=Roboto:ital,wght@0,100..900;1,100..900&family=Ubuntu+Sans+Mono:ital,wght@0,400..700;1,400..700&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/images/360_F_269645677_oAjFKkNrezyIeJ6TmawcwEmERIXlQgi5.jpg" />
 <meta name="theme-color" content="#0a7cff" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="DailyQuran" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(console.error);
 }
 </script>
   </body>

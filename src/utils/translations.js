@@ -35,6 +35,11 @@ export const translations = {
     noFavoritesYet: "No favorites yet.",
     noFavoritesMatch: "No favorites match your search.",
     addToFavoritesHint: 'Click on any ayah and select "Add to favorites" to save it here.',
+    installApp: "Install app",
+    pwaAddToHomeScreenIOS:
+      "On iPhone or iPad: tap Share, then Add to Home Screen.",
+    pwaInstallOtherBrowser:
+      "Open your browser menu and choose Install app or Add to Home Screen.",
     // Filters
     surahFilter: "Surah",
     juzFilter: "Juz",
@@ -138,6 +143,11 @@ export const translations = {
     noFavoritesYet: "لا توجد مفضلات بعد.",
     noFavoritesMatch: "لا توجد مفضلات تطابق بحثك.",
     addToFavoritesHint: 'انقر على أي آية واختر "إضافة للمفضلة" لحفظها هنا.',
+    installApp: "تثبيت التطبيق",
+    pwaAddToHomeScreenIOS:
+      "على iPhone أو iPad: اضغط مشاركة ثم إضافة إلى الشاشة الرئيسية.",
+    pwaInstallOtherBrowser:
+      "افتح قائمة المتصفح واختر تثبيت التطبيق أو إضافة إلى الشاشة الرئيسية.",
     surahFilter: "السورة",
     juzFilter: "الجزء",
     favoritesFilter: "المفضلة",
@@ -233,6 +243,11 @@ export const translations = {
     noFavoritesYet: "Babu abubuwan da aka fi so har yanzu.",
     noFavoritesMatch: "Babu abubuwan da aka fi so da suka dace da bincikenka.",
     addToFavoritesHint: 'Danna kowane ayah kuma zaɓi "Ƙara zuwa abubuwan da aka fi so" don adana shi a nan.',
+    installApp: "Saka manhaja",
+    pwaAddToHomeScreenIOS:
+      "A iPhone ko iPad: danna Share, sannan Ƙara zuwa Allon Gida.",
+    pwaInstallOtherBrowser:
+      "Buɗe menu na burauza kuma zaɓi Saka manhaja ko Ƙara zuwa Allon Gida.",
     surahFilter: "Surori",
     juzFilter: "Juzu'i",
     favoritesFilter: "Abubuwan da aka fi so",
@@ -328,6 +343,11 @@ export const translations = {
     noFavoritesYet: "Ko sí àwọn tí a fẹ́ràn sì.",
     noFavoritesMatch: "Ko sí àwọn tí a fẹ́ràn tó báamu àwárí rẹ.",
     addToFavoritesHint: 'Tẹ lori eyikeyi āyah tẹ si yan "Fi kun àwọn tí a fẹ́ràn" láti fi pamọ́ nibi.',
+    installApp: "Fi áàpù sílẹ̀",
+    pwaAddToHomeScreenIOS:
+      "Lórí iPhone tàbí iPad: tẹ Pín, lẹ́yìn náà Fi sí Ojú-ìbí.",
+    pwaInstallOtherBrowser:
+      "Ṣí àṣàyàn aṣàwáki kí o sì yan Fi áàpù sílẹ̀ tàbí Fi sí Ojú-ìbí.",
     surahFilter: "Sūrah",
     juzFilter: "Juzu",
     favoritesFilter: "Àwọn tí a fẹ́ràn",

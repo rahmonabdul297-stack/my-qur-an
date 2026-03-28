@@ -8,7 +8,7 @@ const Favorites = () => {
   const { t } = useContext(LanguageContext);
 
   return (
-    <div className="p-7 max-w-4xl mx-auto">
+    <div className="p-7 max-w-4xl mx-auto h-screen font-[ubuntu-sans-mono-font]">
       <h1 className="text-2xl font-bold mb-6">{t("myFavorites")}</h1>
       {favorites.length === 0 ? (
         <div className="text-center py-16 opacity-70">

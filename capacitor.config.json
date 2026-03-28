@@ -1,0 +1,8 @@
+{
+  "appId": "com.dailyquran.app",
+  "appName": "Daily Quran",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
