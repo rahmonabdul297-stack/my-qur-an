@@ -321,7 +321,7 @@ const Dashboard = () => {
       </section>
       <GeneralFooter />
 
-      {showDownloadApp && !isStandalone && (
+      {/* {showDownloadApp && !isStandalone && (
         <button
           type="button"
           onClick={handleInstallApp}
@@ -331,7 +331,7 @@ const Dashboard = () => {
           <MdDownload className="shrink-0" size={22} />
           <span>{t("installApp")}</span>
         </button>
-      )}
+      )} */}
     </div>
   );
 };
