@@ -45,7 +45,7 @@ const GeneralFooter = () => {
 
   return (
     <div className="px-4 py-8 sm:px-6 sm:py-10 lg:p-10 h-max w-full bg-AppBlack text-AppWhite">
-      <section className="w-full max-w-[85%] mx-auto flex flex-col lg:flex-row lg:justify-between gap-10 lg:gap-6">
+      <section className="w-full max-w-[85%] mx-auto flex lg:flex-row lg:justify-between gap-10 lg:gap-6">
         <section className="w-full lg:w-[230px] flex flex-col">
           <h1 className="text-xl sm:text-2xl font-bold capitalize">
             {t("quickLinks")}
