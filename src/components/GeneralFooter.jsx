@@ -14,38 +14,30 @@ const GeneralFooter = () => {
       <h3 className="text-base sm:text-xl text-center font-bold capitalize">
         Non-profit projects owned, managed, or sponsored by:
       </h3>
-      <img
-        src="/images/dev Abdulrahmon.jpg"
+    <div className="flex items-center gap-3">
+        <img
+        src="/images/my-img.jpg"
         alt="Dev. Abdulrahmon Yekini"
-        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
+        className="w-8 h-8 sm:w-12 sm:h-12 rounded-full"
       />
-      <p className="text-sm capitalize">Dev. Abdulrahmon Yekini</p>
+      <p className="text-sm uppercase">Engr. Abdulrahmon Yekini</p>
+    </div>
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center">
+       
         <Link
-          to="mailto:rahmonabdul297@gmail.com"
-          className="text-sm flex items-center gap-1 capitalize hover:opacity-80"
+          to="https://abdulrahmon-portfolio-website.vercel.app/"
+          className="text-sm flex items-center gap-1 capitalize hover:opacity-80 hover:text-AppGreen hover:underline"
         >
-          <MdEmail size={20} /> mail
+         visit portfolio
         </Link>
-        <Link
-          to="tel:+2347089136508"
-          className="text-sm flex items-center gap-1 capitalize hover:opacity-80"
-        >
-          <IoPhonePortraitOutline size={20} /> call
-        </Link>
-        <Link
-          to="https://wa.me/+2347089136508"
-          className="text-sm flex items-center gap-1 capitalize hover:opacity-80"
-        >
-          <IoLogoWhatsapp size={20} /> whatsApp
-        </Link>
+      
       </div>
     </div>
   );
 
   return (
     <div className="px-4 py-8 sm:px-6 sm:py-10 lg:p-10 h-max w-full bg-AppBlack text-AppWhite">
-      <section className="w-full max-w-[85%] mx-auto flex lg:flex-row lg:justify-between gap-10 lg:gap-6">
+      <section className="w-full max-w-[85%] mx-auto flex  lg:justify-between gap-10 lg:gap-6">
         <section className="w-full lg:w-[230px] flex flex-col">
           <h1 className="text-xl sm:text-2xl font-bold capitalize">
             {t("quickLinks")}
@@ -94,15 +86,15 @@ const GeneralFooter = () => {
             </Link>
           </div>
         </section>
-
-        <div className="flex lg:hidden flex-col gap-4 items-center text-center">
-          {devSection}
-        </div>
       </section>
-
+      <div className="flex lg:hidden flex-col gap-4 items-center text-center pt-20">
+        {devSection}
+      </div>
       <section className="flex lg:hidden w-full max-w-[85%] mx-auto border-b border-AppWhite/20 my-8 py-6 flex-col items-center justify-center">
         <Logo />
-        <p className="text-xs text-center mt-2 px-2">{t("footerDescription")}</p>
+        <p className="text-xs text-center mt-2 px-2">
+          {t("footerDescription")}
+        </p>
       </section>
 
       <div className="w-full max-w-[85%] mx-auto lg:border-t lg:border-AppWhite/20 text-xs">

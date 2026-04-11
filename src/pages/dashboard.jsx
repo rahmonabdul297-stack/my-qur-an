@@ -75,7 +75,7 @@ const Dashboard = () => {
 
   return (
     <div className="h-screen font-[ubuntu-sans-mono-font] ">
-      <section className="bg-red-400 w-screen h-[70vh] lg:h-[80vh] object-cover relative overflow-hidden">
+      <section className=" w-screen h-[70vh] lg:h-[80vh] object-cover relative overflow-hidden">
         <video
           autoPlay
           loop
