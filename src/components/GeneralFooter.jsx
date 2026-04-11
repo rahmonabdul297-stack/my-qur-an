@@ -26,7 +26,7 @@ const GeneralFooter = () => {
        
         <Link
           to="https://abdulrahmon-portfolio-website.vercel.app/"
-          className="text-sm flex items-center gap-1 capitalize hover:opacity-80 hover:text-AppGreen hover:underline"
+          className="text-sm flex items-center gap-1 capitalize hover:opacity-80 text-AppGreen underline"
         >
          visit portfolio
         </Link>
